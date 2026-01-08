@@ -1,0 +1,58 @@
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# Rust
+*.rs text diff=rust
+Cargo.toml text
+Cargo.lock text -diff
+
+# Documentation
+*.md text diff=markdown
+*.txt text
+
+# Scripts
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+
+# Python
+*.py text diff=python
+*.pyi text diff=python
+
+# JavaScript/TypeScript
+*.js text
+*.ts text
+*.json text
+
+# Web
+*.html text diff=html
+*.css text diff=css
+
+# Config files
+*.toml text
+*.yaml text
+*.yml text
+*.xml text
+
+# Binary files
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.flac binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.wasm binary
+*.bin binary
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+
+# Linguist overrides
+*.h linguist-language=C
+docs/** linguist-documentation
+examples/** linguist-documentation=false
