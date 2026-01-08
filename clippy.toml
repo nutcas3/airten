@@ -1,0 +1,8 @@
+msrv = "1.88"
+cognitive-complexity-threshold = 25
+too-many-arguments-threshold = 10
+type-complexity-threshold = 300
+single-char-binding-names-threshold = 5
+too-large-for-stack = 512
+trivial-copy-size-limit = 16
+pass-by-value-size-limit = 256
