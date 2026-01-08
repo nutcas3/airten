@@ -1,0 +1,24 @@
+[package]
+name = "airten-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Command-line interface for AirTen audio processing"
+readme = "README.md"
+
+[[bin]]
+name = "airten"
+path = "src/main.rs"
+
+[dependencies]
+airten-core = { workspace = true, features = ["std"] }
+clap = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+hound = { workspace = true }
+indicatif = "0.17"
+console = "0.15"

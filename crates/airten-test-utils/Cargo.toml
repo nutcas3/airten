@@ -1,0 +1,15 @@
+[package]
+name = "airten-test-utils"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Testing utilities for AirTen audio processing"
+readme = "README.md"
+
+[dependencies]
+airten-core = { workspace = true, features = ["std"] }
+approx = { workspace = true }
+proptest = { workspace = true }
