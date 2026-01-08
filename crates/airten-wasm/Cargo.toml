@@ -1,0 +1,40 @@
+[package]
+name = "airten-wasm"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "WebAssembly bindings for AirTen audio processing library"
+readme = "README.md"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["console_error_panic_hook"]
+
+[dependencies]
+airten-core = { workspace = true, features = ["std"] }
+wasm-bindgen = { workspace = true }
+js-sys = { workspace = true }
+console_error_panic_hook = { workspace = true, optional = true }
+
+[dependencies.web-sys]
+workspace = true
+features = [
+    "console",
+    "AudioContext",
+    "AudioWorkletNode",
+    "AudioWorkletProcessor",
+    "AudioBuffer",
+    "AudioParam",
+]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[profile.release]
+opt-level = "s"
+lto = true

@@ -1,0 +1,24 @@
+[package]
+name = "airten-ffi"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "C FFI bindings for AirTen audio processing library"
+readme = "README.md"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[features]
+default = []
+
+[dependencies]
+airten-core = { workspace = true, features = ["std"] }
+
+[build-dependencies]
+cbindgen = "0.26"
+
+[dev-dependencies]

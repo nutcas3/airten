@@ -1,0 +1,22 @@
+[package]
+name = "airten-python"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Python bindings for AirTen audio processing library"
+readme = "README.md"
+
+[lib]
+name = "airten"
+crate-type = ["cdylib"]
+
+[features]
+default = []
+
+[dependencies]
+airten-core = { workspace = true, features = ["std"] }
+pyo3 = { workspace = true }
+numpy = { workspace = true }

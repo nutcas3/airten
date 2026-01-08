@@ -1,0 +1,56 @@
+[package]
+name = "airten-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Core DSP engine for real-time audio processing with no_std support"
+readme = "README.md"
+
+[lib]
+crate-type = ["lib", "staticlib", "cdylib"]
+
+[features]
+default = ["std"]
+std = ["alloc"]
+alloc = []
+simd = []
+neon = ["simd"]
+avx2 = ["simd"]
+f16 = []
+serde = ["dep:serde"]
+
+[dependencies]
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
+proptest = { workspace = true }
+approx = { workspace = true }
+
+[[bench]]
+name = "processing"
+harness = false
+
+[[bench]]
+name = "simd"
+harness = false
+
+[[bench]]
+name = "latency"
+harness = false
+
+[[example]]
+name = "basic_processing"
+
+[[example]]
+name = "realtime_audio"
+
+[[example]]
+name = "embedded"
