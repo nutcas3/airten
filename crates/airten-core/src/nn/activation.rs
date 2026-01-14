@@ -15,8 +15,8 @@ pub enum ActivationType {
 
 
 pub struct Activation {
-    activation_type: ActivationType,
-    alpha: Sample,
+    pub activation_type: ActivationType,
+    pub alpha: Sample,
 }
 
 impl Activation {
