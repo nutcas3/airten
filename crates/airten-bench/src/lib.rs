@@ -1,5 +1,5 @@
-use std::time::{Duration, Instant};
 use airten_core::{AudioProcessor, ProcessorConfig, Sample};
+use std::time::{Duration, Instant};
 
 #[derive(Debug, Clone)]
 pub struct BenchmarkResult {
