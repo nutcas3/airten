@@ -329,12 +329,12 @@ pub unsafe extern "C" fn airten_gate_process(
     AirtenError::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn airten_version() -> *const i8 {
     concat!(env!("CARGO_PKG_VERSION"), "\0").as_ptr() as *const i8
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn airten_version_info(major: *mut u32, minor: *mut u32, patch: *mut u32) {
     unsafe {
         if !major.is_null() {

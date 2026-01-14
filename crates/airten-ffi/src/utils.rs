@@ -11,12 +11,12 @@ pub unsafe fn c_str_to_str<'a>(s: *const c_char) -> Option<&'a str> {
     unsafe { CStr::from_ptr(s).to_str().ok() }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn airten_db_to_linear(db: f32) -> f32 {
     10.0_f32.powf(db / 20.0)
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn airten_linear_to_db(linear: f32) -> f32 {
     if linear <= 1e-6 {
         -120.0
