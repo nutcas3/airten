@@ -7,16 +7,14 @@ pub mod fixtures;
 /// Generate a sine wave
 pub fn generate_sine(frequency: f32, sample_rate: u32, num_samples: usize) -> Vec<Sample> {
     let omega = 2.0 * std::f32::consts::PI * frequency / sample_rate as f32;
-    (0..num_samples)
-        .map(|i| (omega * i as f32).sin())
-        .collect()
+    (0..num_samples).map(|i| (omega * i as f32).sin()).collect()
 }
 
 /// Generate white noise
 pub fn generate_white_noise(num_samples: usize, amplitude: f32) -> Vec<Sample> {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
-    
+
     let mut hasher = DefaultHasher::new();
     (0..num_samples)
         .map(|i| {
@@ -36,7 +34,7 @@ pub fn generate_chirp(
 ) -> Vec<Sample> {
     let num_samples = (sample_rate as f32 * duration_secs) as usize;
     let k = (end_freq - start_freq) / duration_secs;
-    
+
     (0..num_samples)
         .map(|i| {
             let t = i as f32 / sample_rate as f32;
@@ -64,11 +62,11 @@ pub fn generate_silence(num_samples: usize) -> Vec<Sample> {
 pub fn calculate_snr(signal: &[Sample], noise: &[Sample]) -> f32 {
     let signal_power: f32 = signal.iter().map(|&x| x * x).sum::<f32>() / signal.len() as f32;
     let noise_power: f32 = noise.iter().map(|&x| x * x).sum::<f32>() / noise.len() as f32;
-    
+
     if noise_power < 1e-10 {
         return 120.0; // Effectively infinite SNR
     }
-    
+
     10.0 * (signal_power / noise_power).log10()
 }
 
@@ -77,10 +75,10 @@ pub fn calculate_thd(samples: &[Sample], fundamental_freq: f32, sample_rate: u32
     // Simple THD estimation using DFT at harmonic frequencies
     let n = samples.len();
     let fundamental_bin = (fundamental_freq * n as f32 / sample_rate as f32).round() as usize;
-    
+
     let mut fundamental_power = 0.0f32;
     let mut harmonic_power = 0.0f32;
-    
+
     // Calculate power at fundamental
     let omega = 2.0 * std::f32::consts::PI * fundamental_bin as f32 / n as f32;
     let mut real = 0.0f32;
@@ -90,14 +88,14 @@ pub fn calculate_thd(samples: &[Sample], fundamental_freq: f32, sample_rate: u32
         imag += sample * (omega * i as f32).sin();
     }
     fundamental_power = (real * real + imag * imag) / (n * n) as f32;
-    
+
     // Calculate power at harmonics (2nd through 5th)
     for harmonic in 2..=5 {
         let bin = fundamental_bin * harmonic;
         if bin >= n / 2 {
             break;
         }
-        
+
         let omega = 2.0 * std::f32::consts::PI * bin as f32 / n as f32;
         let mut real = 0.0f32;
         let mut imag = 0.0f32;
@@ -107,11 +105,11 @@ pub fn calculate_thd(samples: &[Sample], fundamental_freq: f32, sample_rate: u32
         }
         harmonic_power += (real * real + imag * imag) / (n * n) as f32;
     }
-    
+
     if fundamental_power < 1e-10 {
         return 0.0;
     }
-    
+
     (harmonic_power / fundamental_power).sqrt() * 100.0
 }
 
@@ -120,8 +118,10 @@ pub fn buffers_approx_equal(a: &[Sample], b: &[Sample], epsilon: f32) -> bool {
     if a.len() != b.len() {
         return false;
     }
-    
-    a.iter().zip(b.iter()).all(|(&x, &y)| (x - y).abs() < epsilon)
+
+    a.iter()
+        .zip(b.iter())
+        .all(|(&x, &y)| (x - y).abs() < epsilon)
 }
 
 /// Calculate the maximum absolute difference between two buffers
