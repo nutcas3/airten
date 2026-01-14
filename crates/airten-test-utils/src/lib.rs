@@ -58,6 +58,20 @@ pub fn generate_silence(num_samples: usize) -> Vec<Sample> {
     vec![0.0; num_samples]
 }
 
+/// Calculate RMS (Root Mean Square) of audio samples
+pub fn calculate_rms(samples: &[Sample]) -> f32 {
+    if samples.is_empty() {
+        return 0.0;
+    }
+    let sum_sq: f32 = samples.iter().map(|&x| x * x).sum();
+    (sum_sq / samples.len() as f32).sqrt()
+}
+
+/// Find peak amplitude in audio samples
+pub fn find_peak(samples: &[Sample]) -> f32 {
+    samples.iter().map(|&x| x.abs()).fold(0.0f32, f32::max)
+}
+
 /// Calculate Signal-to-Noise Ratio in dB
 pub fn calculate_snr(signal: &[Sample], noise: &[Sample]) -> f32 {
     let signal_power: f32 = signal.iter().map(|&x| x * x).sum::<f32>() / signal.len() as f32;
@@ -137,7 +151,7 @@ pub fn detect_clipping(samples: &[Sample], threshold: f32) -> Vec<usize> {
     samples
         .iter()
         .enumerate()
-        .filter(|(_, &s)| s.abs() >= threshold)
+        .filter(|&(_, s)| s.abs() >= threshold)
         .map(|(i, _)| i)
         .collect()
 }
