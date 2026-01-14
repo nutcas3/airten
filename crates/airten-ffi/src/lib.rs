@@ -66,7 +66,7 @@ impl Default for AirtenConfig {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_processor_new(config: *const AirtenConfig) -> *mut AirtenProcessor {
     let config = if config.is_null() {
         AirtenConfig::default()
@@ -87,7 +87,7 @@ pub unsafe extern "C" fn airten_processor_new(config: *const AirtenConfig) -> *m
     Box::into_raw(processor) as *mut AirtenProcessor
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_processor_free(processor: *mut AirtenProcessor) {
     if !processor.is_null() {
         unsafe {
@@ -96,7 +96,7 @@ pub unsafe extern "C" fn airten_processor_free(processor: *mut AirtenProcessor) 
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_process(
     processor: *mut AirtenProcessor,
     samples: *mut f32,
@@ -115,7 +115,7 @@ pub unsafe extern "C" fn airten_process(
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_processor_reset(processor: *mut AirtenProcessor) -> AirtenError {
     if processor.is_null() {
         return AirtenError::NullPointer;
@@ -137,7 +137,7 @@ pub enum AirtenFilterType {
     HighShelf = 6,
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_filter_new(
     filter_type: AirtenFilterType,
     sample_rate: f32,
@@ -158,7 +158,7 @@ pub unsafe extern "C" fn airten_filter_new(
     Box::into_raw(Box::new(filter)) as *mut AirtenFilter
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_filter_free(filter: *mut AirtenFilter) {
     if !filter.is_null() {
         unsafe {
@@ -167,7 +167,7 @@ pub unsafe extern "C" fn airten_filter_free(filter: *mut AirtenFilter) {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_filter_process(
     filter: *mut AirtenFilter,
     samples: *mut f32,
@@ -183,7 +183,7 @@ pub unsafe extern "C" fn airten_filter_process(
     AirtenError::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_filter_reset(filter: *mut AirtenFilter) -> AirtenError {
     if filter.is_null() {
         return AirtenError::NullPointer;
@@ -194,13 +194,13 @@ pub unsafe extern "C" fn airten_filter_reset(filter: *mut AirtenFilter) -> Airte
     AirtenError::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_new(sample_rate: f32) -> *mut AirtenCompressor {
     let compressor = Box::new(Compressor::new(sample_rate));
     Box::into_raw(compressor) as *mut AirtenCompressor
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_free(compressor: *mut AirtenCompressor) {
     if !compressor.is_null() {
         unsafe {
@@ -209,7 +209,7 @@ pub unsafe extern "C" fn airten_compressor_free(compressor: *mut AirtenCompresso
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_set_threshold(
     compressor: *mut AirtenCompressor,
     threshold_db: f32,
@@ -223,7 +223,7 @@ pub unsafe extern "C" fn airten_compressor_set_threshold(
     AirtenError::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_set_ratio(
     compressor: *mut AirtenCompressor,
     ratio: f32,
@@ -237,7 +237,7 @@ pub unsafe extern "C" fn airten_compressor_set_ratio(
     AirtenError::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_set_attack(
     compressor: *mut AirtenCompressor,
     attack_ms: f32,
@@ -251,7 +251,7 @@ pub unsafe extern "C" fn airten_compressor_set_attack(
     AirtenError::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_set_release(
     compressor: *mut AirtenCompressor,
     release_ms: f32,
@@ -265,7 +265,7 @@ pub unsafe extern "C" fn airten_compressor_set_release(
     AirtenError::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_process(
     compressor: *mut AirtenCompressor,
     samples: *mut f32,
@@ -281,13 +281,13 @@ pub unsafe extern "C" fn airten_compressor_process(
     AirtenError::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_gate_new(sample_rate: f32) -> *mut AirtenGate {
     let gate = Box::new(NoiseGate::new(sample_rate));
     Box::into_raw(gate) as *mut AirtenGate
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_gate_free(gate: *mut AirtenGate) {
     if !gate.is_null() {
         unsafe {
@@ -296,7 +296,7 @@ pub unsafe extern "C" fn airten_gate_free(gate: *mut AirtenGate) {
     }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_gate_set_threshold(
     gate: *mut AirtenGate,
     threshold_db: f32,
@@ -310,7 +310,7 @@ pub unsafe extern "C" fn airten_gate_set_threshold(
     AirtenError::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_gate_process(
     gate: *mut AirtenGate,
     samples: *mut f32,
