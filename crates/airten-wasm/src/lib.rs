@@ -1,13 +1,9 @@
 use wasm_bindgen::prelude::*;
 use js_sys::{Float32Array, Object, Reflect};
 
-use airten_core::{
-    AudioProcessor as CoreProcessor,
-    ProcessorConfig,
-    Sample,
-};
-use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};
 use airten_core::audio::Resampler as CoreResampler;
+use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};
+use airten_core::{AudioProcessor as CoreProcessor, ProcessorConfig, Sample};
 
 #[wasm_bindgen(start)]
 pub fn init() {
@@ -27,7 +23,7 @@ impl AudioProcessor {
     #[wasm_bindgen(constructor)]
     pub fn new(config: Option<ProcessorOptions>) -> AudioProcessor {
         let config = config.unwrap_or_default();
-        
+
         let proc_config = ProcessorConfig {
             sample_rate: config.sample_rate(),
             frame_size: config.frame_size() as usize,
@@ -45,7 +41,8 @@ impl AudioProcessor {
     /// Process audio samples in-place
     #[wasm_bindgen]
     pub fn process(&mut self, samples: &mut [f32]) -> Result<(), JsValue> {
-        self.inner.process(samples)
+        self.inner
+            .process(samples)
             .map_err(|e| JsValue::from_str(&format!("Processing error: {}", e)))
     }
 
@@ -53,10 +50,11 @@ impl AudioProcessor {
     #[wasm_bindgen(js_name = processArray)]
     pub fn process_array(&mut self, input: Float32Array) -> Result<Float32Array, JsValue> {
         let mut samples: Vec<f32> = input.to_vec();
-        
-        self.inner.process(&mut samples)
+
+        self.inner
+            .process(&mut samples)
             .map_err(|e| JsValue::from_str(&format!("Processing error: {}", e)))?;
-        
+
         Ok(Float32Array::from(&samples[..]))
     }
 
@@ -369,10 +367,10 @@ impl Resampler {
         let input_vec: Vec<f32> = input.to_vec();
         let output_size = self.inner.output_size(input_vec.len());
         let mut output = vec![0.0f32; output_size];
-        
+
         let written = self.inner.process(&input_vec, &mut output);
         output.truncate(written);
-        
+
         Float32Array::from(&output[..])
     }
 
@@ -398,7 +396,7 @@ pub fn calculate_rms(samples: Float32Array) -> f32 {
     if samples.is_empty() {
         return 0.0;
     }
-    
+
     let sum_sq: f32 = samples.iter().map(|&x| x * x).sum();
     (sum_sq / samples.len() as f32).sqrt()
 }
