@@ -71,7 +71,7 @@ pub unsafe extern "C" fn airten_processor_new(config: *const AirtenConfig) -> *m
     let config = if config.is_null() {
         AirtenConfig::default()
     } else {
-        *config
+        unsafe { *config }
     };
 
     let proc_config = ProcessorConfig {
@@ -90,7 +90,9 @@ pub unsafe extern "C" fn airten_processor_new(config: *const AirtenConfig) -> *m
 #[no_mangle]
 pub unsafe extern "C" fn airten_processor_free(processor: *mut AirtenProcessor) {
     if !processor.is_null() {
-        drop(Box::from_raw(processor as *mut AudioProcessor));
+        unsafe {
+            drop(Box::from_raw(processor as *mut AudioProcessor));
+        }
     }
 }
 
@@ -104,8 +106,8 @@ pub unsafe extern "C" fn airten_process(
         return AirtenError::NullPointer;
     }
 
-    let processor = &mut *(processor as *mut AudioProcessor);
-    let samples = slice::from_raw_parts_mut(samples, num_samples as usize);
+    let processor = unsafe { &mut *(processor as *mut AudioProcessor) };
+    let samples = unsafe { slice::from_raw_parts_mut(samples, num_samples as usize) };
 
     match processor.process(samples) {
         Ok(()) => AirtenError::Ok,
@@ -119,7 +121,7 @@ pub unsafe extern "C" fn airten_processor_reset(processor: *mut AirtenProcessor)
         return AirtenError::NullPointer;
     }
 
-    let processor = &mut *(processor as *mut AudioProcessor);
+    let processor = unsafe { &mut *(processor as *mut AudioProcessor) };
     processor.reset();
     AirtenError::Ok
 }
@@ -159,7 +161,9 @@ pub unsafe extern "C" fn airten_filter_new(
 #[no_mangle]
 pub unsafe extern "C" fn airten_filter_free(filter: *mut AirtenFilter) {
     if !filter.is_null() {
-        drop(Box::from_raw(filter as *mut BiquadFilter));
+        unsafe {
+            drop(Box::from_raw(filter as *mut BiquadFilter));
+        }
     }
 }
 
@@ -173,8 +177,8 @@ pub unsafe extern "C" fn airten_filter_process(
         return AirtenError::NullPointer;
     }
 
-    let filter = &mut *(filter as *mut BiquadFilter);
-    let samples = slice::from_raw_parts_mut(samples, num_samples as usize);
+    let filter = unsafe { &mut *(filter as *mut BiquadFilter) };
+    let samples = unsafe { slice::from_raw_parts_mut(samples, num_samples as usize) };
     filter.process_block(samples);
     AirtenError::Ok
 }
@@ -185,7 +189,7 @@ pub unsafe extern "C" fn airten_filter_reset(filter: *mut AirtenFilter) -> Airte
         return AirtenError::NullPointer;
     }
 
-    let filter = &mut *(filter as *mut BiquadFilter);
+    let filter = unsafe { &mut *(filter as *mut BiquadFilter) };
     filter.reset();
     AirtenError::Ok
 }
@@ -199,7 +203,9 @@ pub unsafe extern "C" fn airten_compressor_new(sample_rate: f32) -> *mut AirtenC
 #[no_mangle]
 pub unsafe extern "C" fn airten_compressor_free(compressor: *mut AirtenCompressor) {
     if !compressor.is_null() {
-        drop(Box::from_raw(compressor as *mut Compressor));
+        unsafe {
+            drop(Box::from_raw(compressor as *mut Compressor));
+        }
     }
 }
 
@@ -212,7 +218,7 @@ pub unsafe extern "C" fn airten_compressor_set_threshold(
         return AirtenError::NullPointer;
     }
 
-    let compressor = &mut *(compressor as *mut Compressor);
+    let compressor = unsafe { &mut *(compressor as *mut Compressor) };
     compressor.set_threshold(threshold_db);
     AirtenError::Ok
 }
@@ -226,7 +232,7 @@ pub unsafe extern "C" fn airten_compressor_set_ratio(
         return AirtenError::NullPointer;
     }
 
-    let compressor = &mut *(compressor as *mut Compressor);
+    let compressor = unsafe { &mut *(compressor as *mut Compressor) };
     compressor.set_ratio(ratio);
     AirtenError::Ok
 }
@@ -240,7 +246,7 @@ pub unsafe extern "C" fn airten_compressor_set_attack(
         return AirtenError::NullPointer;
     }
 
-    let compressor = &mut *(compressor as *mut Compressor);
+    let compressor = unsafe { &mut *(compressor as *mut Compressor) };
     compressor.set_attack(attack_ms);
     AirtenError::Ok
 }
@@ -254,7 +260,7 @@ pub unsafe extern "C" fn airten_compressor_set_release(
         return AirtenError::NullPointer;
     }
 
-    let compressor = &mut *(compressor as *mut Compressor);
+    let compressor = unsafe { &mut *(compressor as *mut Compressor) };
     compressor.set_release(release_ms);
     AirtenError::Ok
 }
@@ -269,8 +275,8 @@ pub unsafe extern "C" fn airten_compressor_process(
         return AirtenError::NullPointer;
     }
 
-    let compressor = &mut *(compressor as *mut Compressor);
-    let samples = slice::from_raw_parts_mut(samples, num_samples as usize);
+    let compressor = unsafe { &mut *(compressor as *mut Compressor) };
+    let samples = unsafe { slice::from_raw_parts_mut(samples, num_samples as usize) };
     compressor.process_block(samples);
     AirtenError::Ok
 }
@@ -284,7 +290,9 @@ pub unsafe extern "C" fn airten_gate_new(sample_rate: f32) -> *mut AirtenGate {
 #[no_mangle]
 pub unsafe extern "C" fn airten_gate_free(gate: *mut AirtenGate) {
     if !gate.is_null() {
-        drop(Box::from_raw(gate as *mut NoiseGate));
+        unsafe {
+            drop(Box::from_raw(gate as *mut NoiseGate));
+        }
     }
 }
 
@@ -297,7 +305,7 @@ pub unsafe extern "C" fn airten_gate_set_threshold(
         return AirtenError::NullPointer;
     }
 
-    let gate = &mut *(gate as *mut NoiseGate);
+    let gate = unsafe { &mut *(gate as *mut NoiseGate) };
     gate.set_threshold(threshold_db);
     AirtenError::Ok
 }
@@ -312,8 +320,8 @@ pub unsafe extern "C" fn airten_gate_process(
         return AirtenError::NullPointer;
     }
 
-    let gate = &mut *(gate as *mut NoiseGate);
-    let samples = slice::from_raw_parts_mut(samples, num_samples as usize);
+    let gate = unsafe { &mut *(gate as *mut NoiseGate) };
+    let samples = unsafe { slice::from_raw_parts_mut(samples, num_samples as usize) };
     gate.process_block(samples);
     AirtenError::Ok
 }
