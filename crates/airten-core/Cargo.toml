@@ -45,12 +45,3 @@ harness = false
 [[bench]]
 name = "latency"
 harness = false
-
-[[example]]
-name = "basic_processing"
-
-[[example]]
-name = "realtime_audio"
-
-[[example]]
-name = "embedded"
