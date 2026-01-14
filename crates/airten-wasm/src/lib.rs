@@ -1,9 +1,9 @@
 use wasm_bindgen::prelude::*;
-use js_sys::{Float32Array, Object, Reflect};
+use js_sys::Float32Array;
 
 use airten_core::audio::Resampler as CoreResampler;
 use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};
-use airten_core::{AudioProcessor as CoreProcessor, ProcessorConfig, Sample};
+use airten_core::{AudioProcessor as CoreProcessor, ProcessorConfig};
 
 #[wasm_bindgen(start)]
 pub fn init() {

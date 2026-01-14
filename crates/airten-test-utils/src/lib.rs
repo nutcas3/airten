@@ -90,7 +90,7 @@ pub fn calculate_thd(samples: &[Sample], fundamental_freq: f32, sample_rate: u32
     let n = samples.len();
     let fundamental_bin = (fundamental_freq * n as f32 / sample_rate as f32).round() as usize;
 
-    let mut fundamental_power = 0.0f32;
+    let fundamental_power;
     let mut harmonic_power = 0.0f32;
 
     // Calculate power at fundamental

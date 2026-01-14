@@ -5,9 +5,8 @@ use pyo3::exceptions::{PyValueError, PyRuntimeError};
 use airten_core::{
     AudioProcessor as CoreProcessor,
     ProcessorConfig,
-    Sample,
 };
-use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate, EnvelopeFollower};
+use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};
 use airten_core::audio::Resampler as CoreResampler;
 
 #[pyclass]
