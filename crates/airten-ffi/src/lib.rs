@@ -1,3 +1,6 @@
+#![allow(unsafe_op_in_unsafe_fn)]
+#![allow(unsafe_code)]
+
 use std::ffi::c_void;
 use std::ptr;
 use std::slice;

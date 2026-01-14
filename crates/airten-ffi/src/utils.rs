@@ -1,3 +1,6 @@
+#![allow(unsafe_op_in_unsafe_fn)]
+#![allow(unsafe_attr_outside_unsafe)]
+
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
@@ -22,7 +25,7 @@ pub extern "C" fn airten_linear_to_db(linear: f32) -> f32 {
     }
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn airten_calculate_rms(samples: *const f32, num_samples: u32) -> f32 {
     if samples.is_null() || num_samples == 0 {
         return 0.0;
@@ -33,7 +36,7 @@ pub unsafe extern "C" fn airten_calculate_rms(samples: *const f32, num_samples: 
     (sum_sq / num_samples as f32).sqrt()
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn airten_find_peak(samples: *const f32, num_samples: u32) -> f32 {
     if samples.is_null() || num_samples == 0 {
         return 0.0;
@@ -43,7 +46,7 @@ pub unsafe extern "C" fn airten_find_peak(samples: *const f32, num_samples: u32)
     samples.iter().map(|&x| x.abs()).fold(0.0f32, f32::max)
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn airten_apply_gain(samples: *mut f32, num_samples: u32, gain: f32) {
     if samples.is_null() || num_samples == 0 {
         return;
@@ -55,7 +58,7 @@ pub unsafe extern "C" fn airten_apply_gain(samples: *mut f32, num_samples: u32, 
     }
 }
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn airten_mix_buffers(
     a: *const f32,
     b: *const f32,
