@@ -1,6 +1,6 @@
 #![cfg(all(feature = "simd", target_arch = "aarch64"))]
 
-use core::simd::{f32x4, SimdFloat, StdFloat};
+use core::simd::{f32x4, num::SimdFloat, StdFloat};
 use crate::Sample;
 
 const SIMD_WIDTH: usize = 4;

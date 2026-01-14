@@ -3,12 +3,11 @@ use crate::Sample;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActivationType {
     Linear,
-    Rectified Linear Unit,
     ReLU,
     LeakyReLU,
     Sigmoid,
-    Hyperbolic tangent,
-    Exponential Linear Unit,
+    Tanh,
+    ELU,
     Softmax,
     Swish,
     GELU,
