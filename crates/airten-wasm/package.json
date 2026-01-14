@@ -1,0 +1,38 @@
+{
+  "name": "@airten/wasm",
+  "version": "1.0.0",
+  "description": "High-performance audio processing library for voice AI applications (WebAssembly)",
+  "main": "pkg/airten_wasm.js",
+  "module": "pkg/airten_wasm.js",
+  "types": "pkg/airten_wasm.d.ts",
+  "files": [
+    "pkg/*"
+  ],
+  "scripts": {
+    "build": "wasm-pack build --release --target web",
+    "build:node": "wasm-pack build --release --target nodejs",
+    "build:bundler": "wasm-pack build --release --target bundler",
+    "test": "wasm-pack test --headless --chrome",
+    "clean": "rm -rf pkg"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ai-coustics/airten.git"
+  },
+  "keywords": [
+    "audio",
+    "dsp",
+    "voice",
+    "ai",
+    "wasm",
+    "webassembly",
+    "real-time",
+    "processing"
+  ],
+  "author": "AirTen Team <team@airten.dev>",
+  "license": "MIT OR Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/ai-coustics/airten/issues"
+  },
+  "homepage": "https://airten.dev"
+}
