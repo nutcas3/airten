@@ -5,7 +5,7 @@ use std::slice;
 use crate::{AirtenError, AirtenAudioBuffer, AirtenStats};
 use airten_core::{AudioProcessor, AudioFrame};
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_process_buffer(
     processor: *mut crate::AirtenProcessor,
     buffer: *mut AirtenAudioBuffer,
@@ -51,7 +51,7 @@ pub unsafe extern "C" fn airten_process_buffer(
     AirtenError::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_get_stats(
     processor: *mut crate::AirtenProcessor,
     stats: *mut AirtenStats,
