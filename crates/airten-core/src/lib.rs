@@ -23,7 +23,6 @@
 //! ```
 
 #![no_std]
-#![cfg_attr(feature = "simd", feature(portable_simd))]
 #![warn(missing_docs)]
 #![warn(clippy::all)]
 #![warn(clippy::pedantic)]

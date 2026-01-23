@@ -1,8 +1,11 @@
+#![allow(unsafe_op_in_unsafe_fn)]
+#![allow(unsafe_attr_outside_unsafe)]
+
 use std::slice;
 use crate::{AirtenError, AirtenAudioBuffer, AirtenStats};
 use airten_core::{AudioProcessor, AudioFrame};
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_process_buffer(
     processor: *mut crate::AirtenProcessor,
     buffer: *mut AirtenAudioBuffer,
@@ -11,15 +14,15 @@ pub unsafe extern "C" fn airten_process_buffer(
         return AirtenError::NullPointer;
     }
 
-    let processor = &mut *(processor as *mut AudioProcessor);
-    let buffer = &mut *buffer;
+    let processor = unsafe { &mut *(processor as *mut AudioProcessor) };
+    let buffer = unsafe { &mut *buffer };
 
     if buffer.data.is_null() {
         return AirtenError::NullPointer;
     }
 
     let total_samples = (buffer.num_samples * buffer.num_channels) as usize;
-    let samples = slice::from_raw_parts_mut(buffer.data, total_samples);
+    let samples = unsafe { slice::from_raw_parts_mut(buffer.data, total_samples) };
 
     if buffer.interleaved != 0 {
         let mut frame = AudioFrame::with_config(
@@ -48,7 +51,7 @@ pub unsafe extern "C" fn airten_process_buffer(
     AirtenError::Ok
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_get_stats(
     processor: *mut crate::AirtenProcessor,
     stats: *mut AirtenStats,
@@ -57,8 +60,8 @@ pub unsafe extern "C" fn airten_get_stats(
         return AirtenError::NullPointer;
     }
 
-    let processor = &*(processor as *mut AudioProcessor);
-    let stats = &mut *stats;
+    let processor = unsafe { &*(processor as *mut AudioProcessor) };
+    let stats = unsafe { &mut *stats };
 
     let config = processor.config();
     stats.latency_ms = (config.frame_size as f32 / config.sample_rate as f32) * 1000.0;

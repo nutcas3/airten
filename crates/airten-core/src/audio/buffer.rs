@@ -1,7 +1,10 @@
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
-use crate::{Sample, MAX_FRAME_SIZE, MAX_CHANNELS, error::{Error, Result}};
+use crate::{Sample, error::{Error, Result}};
+
+#[cfg(not(feature = "alloc"))]
+use crate::{MAX_FRAME_SIZE, MAX_CHANNELS};
 
 pub struct AudioBuffer {
     #[cfg(feature = "alloc")]
@@ -123,7 +126,8 @@ impl AudioBuffer {
     }
 
     pub fn clear(&mut self) {
-        for sample in self.data[..self.len()].iter_mut() {
+        let len = self.len();
+        for sample in self.data[..len].iter_mut() {
             *sample = 0.0;
         }
     }

@@ -148,13 +148,6 @@ impl BiquadFilter {
         let sin_omega = omega.sin();
         let cos_omega = omega.cos();
         let alpha = sin_omega / (2.0 * q);
-    /// * `gain_db` - Gain in decibels
-    pub fn peaking(sample_rate: Sample, center: Sample, q: Sample, gain_db: Sample) -> Self {
-        let a = 10.0_f32.powf(gain_db / 40.0);
-        let omega = TWO_PI * center / sample_rate;
-        let sin_omega = omega.sin();
-        let cos_omega = omega.cos();
-        let alpha = sin_omega / (2.0 * q);
 
         let b0 = 1.0 + alpha * a;
         let b1 = -2.0 * cos_omega;

@@ -35,7 +35,7 @@ pub fn process_gain_scalar(input: &[Sample], output: &mut [Sample], gain: Sample
 
 #[inline]
 pub fn mix_signals(a: &[Sample], b: &[Sample], output: &mut [Sample], mix: Sample) {
-    let len = a.len().min(b.len()).min(output.len());
+    let _len = a.len().min(b.len()).min(output.len());
     
     #[cfg(all(feature = "simd", any(target_arch = "x86_64", target_arch = "aarch64")))]
     {
@@ -45,7 +45,7 @@ pub fn mix_signals(a: &[Sample], b: &[Sample], output: &mut [Sample], mix: Sampl
     #[cfg(not(all(feature = "simd", any(target_arch = "x86_64", target_arch = "aarch64"))))]
     {
         let inv_mix = 1.0 - mix;
-        for i in 0..len {
+        for i in 0.._len {
             output[i] = a[i] * inv_mix + b[i] * mix;
         }
     }
