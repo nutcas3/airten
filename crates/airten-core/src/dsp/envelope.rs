@@ -55,6 +55,8 @@ impl EnvelopeFollower {
         self.envelope
     }
 
+    /// Resets the envelope follower state
+    #[allow(dead_code)]
     pub fn reset(&mut self) {
         self.envelope = 0.0;
     }
@@ -130,6 +132,8 @@ impl RmsEnvelopeFollower {
         self.envelope
     }
 
+    /// Resets the RMS envelope follower state
+    #[allow(dead_code)]
     pub fn reset(&mut self) {
         self.buffer = [0.0; 1024];
         self.write_pos = 0;
@@ -189,6 +193,8 @@ impl PeakHoldEnvelope {
         self.peak
     }
 
+    /// Resets the peak hold envelope state
+    #[allow(dead_code)]
     pub fn reset(&mut self) {
         self.peak = 0.0;
         self.hold_counter = 0;

@@ -1,25 +1,42 @@
 use crate::Sample;
 
+/// Neural network activation function types
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActivationType {
+    /// Linear activation (no transformation)
     Linear,
+    /// Rectified Linear Unit
     ReLU,
+    /// Leaky ReLU with configurable alpha
     LeakyReLU,
+    /// Sigmoid activation function
     Sigmoid,
+    /// Hyperbolic tangent
     Tanh,
+    /// Exponential Linear Unit
     ELU,
+    /// Softmax activation
     Softmax,
+    /// Swish activation
     Swish,
+    /// Gaussian Error Linear Unit
     GELU,
 }
 
 
+/// Neural network activation function with type and parameters
 pub struct Activation {
+    /// Type of activation function
     pub activation_type: ActivationType,
+    /// Alpha parameter for functions like LeakyReLU and ELU
     pub alpha: Sample,
 }
 
 impl Activation {
+    /// Creates a new activation with default alpha (0.01)
+    /// 
+    /// # Arguments
+    /// * `activation_type` - Type of activation function
     pub fn new(activation_type: ActivationType) -> Self {
         Self {
             activation_type,
@@ -27,6 +44,10 @@ impl Activation {
         }
     }
 
+    /// Creates a LeakyReLU activation with specified alpha
+    /// 
+    /// # Arguments
+    /// * `alpha` - Slope for negative values (typically 0.01)
     pub fn leaky_relu(alpha: Sample) -> Self {
         Self {
             activation_type: ActivationType::LeakyReLU,
@@ -34,6 +55,10 @@ impl Activation {
         }
     }
 
+    /// Creates an ELU activation with specified alpha
+    /// 
+    /// # Arguments
+    /// * `alpha` - Alpha parameter for ELU (typically 1.0)
     pub fn elu(alpha: Sample) -> Self {
         Self {
             activation_type: ActivationType::ELU,
@@ -41,6 +66,13 @@ impl Activation {
         }
     }
 
+    /// Applies the activation function to a single value
+    /// 
+    /// # Arguments
+    /// * `x` - Input value
+    /// 
+    /// # Returns
+    /// Activated output value
     #[inline]
     pub fn apply(&self, x: Sample) -> Sample {
         match self.activation_type {
@@ -63,6 +95,10 @@ impl Activation {
         }
     }
 
+    /// Applies the activation function to a slice in-place
+    /// 
+    /// # Arguments
+    /// * `data` - Mutable slice of values to activate
     pub fn apply_inplace(&self, data: &mut [Sample]) {
         if self.activation_type == ActivationType::Softmax {
             self.apply_softmax(data);
@@ -73,6 +109,10 @@ impl Activation {
         }
     }
 
+    /// Applies softmax activation to a slice in-place
+    /// 
+    /// # Arguments
+    /// * `data` - Mutable slice of values for softmax
     fn apply_softmax(&self, data: &mut [Sample]) {
         let max = data.iter().cloned().fold(Sample::NEG_INFINITY, Sample::max);
         
@@ -89,6 +129,13 @@ impl Activation {
         }
     }
 
+    /// Computes the derivative of the activation function
+    /// 
+    /// # Arguments
+    /// * `x` - Input value
+    /// 
+    /// # Returns
+    /// Derivative value at x
     #[inline]
     pub fn derivative(&self, x: Sample) -> Sample {
         match self.activation_type {

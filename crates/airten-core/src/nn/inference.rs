@@ -5,6 +5,10 @@ use crate::nn::layer::Layer;
 pub const MAX_LAYERS: usize = 16;
 pub const MAX_LAYER_SIZE: usize = 512;
 
+/// Neural network inference engine for real-time audio processing
+/// 
+/// Supports up to 16 layers with fixed-size buffers for no-heap operation.
+/// Uses static layer references to ensure memory safety in embedded environments.
 pub struct NeuralNetwork {
     layers: [Option<&'static Layer>; MAX_LAYERS],
     num_layers: usize,
@@ -13,6 +17,7 @@ pub struct NeuralNetwork {
 }
 
 impl NeuralNetwork {
+    /// Creates a new neural network with no layers
     pub const fn new() -> Self {
         Self {
             layers: [None; MAX_LAYERS],
@@ -22,6 +27,10 @@ impl NeuralNetwork {
         }
     }
 
+    /// Adds a layer to the network
+    /// 
+    /// # Arguments
+    /// * `layer` - Static reference to a layer
     pub fn add_layer(&mut self, layer: &'static Layer) -> Result<()> {
         if self.num_layers >= MAX_LAYERS {
             return Err(Error::BufferTooLarge);
@@ -42,14 +51,17 @@ impl NeuralNetwork {
     }
 
     #[inline]
+    /// Returns the number of layers in the network
     pub fn num_layers(&self) -> usize {
         self.num_layers
     }
 
+    /// Returns the input size of the network (first layer input size)
     pub fn input_size(&self) -> Option<usize> {
         self.layers[0].map(|l| l.input_size())
     }
 
+    /// Returns the output size of the network (last layer output size)
     pub fn output_size(&self) -> Option<usize> {
         if self.num_layers > 0 {
             self.layers[self.num_layers - 1].map(|l| l.output_size())
@@ -58,6 +70,11 @@ impl NeuralNetwork {
         }
     }
 
+    /// Performs forward inference through all layers
+    /// 
+    /// # Arguments
+    /// * `input` - Input samples
+    /// * `output` - Output buffer (must be large enough for network output)
     pub fn forward(&mut self, input: &[Sample], output: &mut [Sample]) -> Result<()> {
         if self.num_layers == 0 {
             return Err(Error::ModelNotLoaded);
@@ -116,6 +133,7 @@ impl NeuralNetwork {
         Ok(())
     }
 
+    /// Clears all internal buffers and state
     pub fn clear(&mut self) {
         self.layers = [None; MAX_LAYERS];
         self.num_layers = 0;
@@ -163,7 +181,6 @@ impl DenoiserNetwork {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::nn::activation::{Activation, ActivationType};
 
     static LAYER1_WEIGHTS: [Sample; 4] = [1.0, 0.0, 0.0, 1.0];
     static LAYER1_BIASES: [Sample; 2] = [0.0, 0.0];

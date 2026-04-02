@@ -1,5 +1,8 @@
+#[cfg(feature = "python-bindings")]
 use numpy::{PyArray1, PyArrayMethods, PyReadonlyArray1};
+#[cfg(feature = "python-bindings")]
 use pyo3::prelude::*;
+#[cfg(feature = "python-bindings")]
 use pyo3::exceptions::{PyValueError, PyRuntimeError};
 
 use airten_core::{
@@ -9,11 +12,13 @@ use airten_core::{
 use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};
 use airten_core::audio::Resampler as CoreResampler;
 
+#[cfg(feature = "python-bindings")]
 #[pyclass]
 pub struct AudioProcessor {
     inner: CoreProcessor,
 }
 
+#[cfg(feature = "python-bindings")]
 #[pymethods]
 impl AudioProcessor {
     /// Create a new audio processor
@@ -107,11 +112,13 @@ impl AudioProcessor {
 }
 
 /// Biquad filter for audio processing
+#[cfg(feature = "python-bindings")]
 #[pyclass]
 pub struct Filter {
     inner: BiquadFilter,
 }
 
+#[cfg(feature = "python-bindings")]
 #[pymethods]
 impl Filter {
     /// Create a lowpass filter
@@ -195,11 +202,13 @@ impl Filter {
 }
 
 /// Dynamic range compressor
+#[cfg(feature = "python-bindings")]
 #[pyclass]
 pub struct DynamicCompressor {
     inner: Compressor,
 }
 
+#[cfg(feature = "python-bindings")]
 #[pymethods]
 impl DynamicCompressor {
     /// Create a new compressor
@@ -266,11 +275,13 @@ impl DynamicCompressor {
 }
 
 /// Noise gate
+#[cfg(feature = "python-bindings")]
 #[pyclass]
 pub struct Gate {
     inner: NoiseGate,
 }
 
+#[cfg(feature = "python-bindings")]
 #[pymethods]
 impl Gate {
     /// Create a new noise gate
@@ -329,11 +340,13 @@ impl Gate {
 }
 
 /// Audio resampler
+#[cfg(feature = "python-bindings")]
 #[pyclass]
 pub struct Resampler {
     inner: CoreResampler,
 }
 
+#[cfg(feature = "python-bindings")]
 #[pymethods]
 impl Resampler {
     /// Create a new resampler
@@ -385,6 +398,7 @@ impl Resampler {
 }
 
 /// Calculate RMS of audio samples
+#[cfg(feature = "python-bindings")]
 #[pyfunction]
 fn calculate_rms(samples: PyReadonlyArray1<f32>) -> PyResult<f32> {
     let slice = samples.as_slice()
@@ -399,6 +413,7 @@ fn calculate_rms(samples: PyReadonlyArray1<f32>) -> PyResult<f32> {
 }
 
 /// Find peak amplitude of audio samples
+#[cfg(feature = "python-bindings")]
 #[pyfunction]
 fn find_peak(samples: PyReadonlyArray1<f32>) -> PyResult<f32> {
     let slice = samples.as_slice()
@@ -408,12 +423,14 @@ fn find_peak(samples: PyReadonlyArray1<f32>) -> PyResult<f32> {
 }
 
 /// Convert decibels to linear amplitude
+#[cfg(feature = "python-bindings")]
 #[pyfunction]
 fn db_to_linear(db: f32) -> f32 {
     10.0_f32.powf(db / 20.0)
 }
 
 /// Convert linear amplitude to decibels
+#[cfg(feature = "python-bindings")]
 #[pyfunction]
 fn linear_to_db(linear: f32) -> f32 {
     if linear <= 1e-6 {
@@ -424,6 +441,7 @@ fn linear_to_db(linear: f32) -> f32 {
 }
 
 /// AirTen Python module
+#[cfg(feature = "python-bindings")]
 #[pymodule]
 fn airten(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<AudioProcessor>()?;
@@ -437,4 +455,15 @@ fn airten(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(linear_to_db, m)?)?;
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     Ok(())
+}
+
+// Stub implementation when Python bindings are disabled
+#[cfg(not(feature = "python-bindings"))]
+pub fn calculate_rms(_samples: &[f32]) -> Result<f32, &'static str> {
+    Err("Python bindings not enabled. Build with --features python-bindings")
+}
+
+#[cfg(not(feature = "python-bindings"))]
+pub fn find_peak(_samples: &[f32]) -> Result<f32, &'static str> {
+    Err("Python bindings not enabled. Build with --features python-bindings")
 }

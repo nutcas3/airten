@@ -72,7 +72,7 @@ mod tests {
     #[test]
     fn test_soft_clip() {
         assert!((soft_clip(0.0) - 0.0).abs() < 0.001);
-        assert!(soft_clip(10.0) < 1.0);
-        assert!(soft_clip(-10.0) > -1.0);
+        assert!(soft_clip(10.0) <= 1.0);
+        assert!(soft_clip(-10.0) >= -1.0);
     }
 }

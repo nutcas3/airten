@@ -7,17 +7,28 @@ pub struct Q15(pub i16);
 
 impl Q15 {
     pub const SCALE: i32 = 32768; 
+    /// Maximum Q15 value (1.0)
+    #[allow(dead_code)]
     pub const MAX: Q15 = Q15(i16::MAX);
+    /// Minimum Q15 value (-1.0)
+    #[allow(dead_code)]
     pub const MIN: Q15 = Q15(i16::MIN);
+    /// Zero Q15 value (0.0)
+    #[allow(dead_code)]
     pub const ZERO: Q15 = Q15(0);
+    /// One Q15 value (1.0)
+    #[allow(dead_code)]
     pub const ONE: Q15 = Q15(i16::MAX);
 
     #[inline]
+    /// Creates Q15 from raw integer value
+    #[allow(dead_code)]
     pub const fn from_raw(raw: i16) -> Self {
         Self(raw)
     }
 
-    #[inline]
+    /// Returns raw integer value
+    #[allow(dead_code)]
     pub const fn to_raw(self) -> i16 {
         self.0
     }
@@ -52,29 +63,49 @@ impl Q15 {
         Self(saturated as i16)
     }
 
+    /// Returns the absolute value
     #[inline]
+    #[allow(dead_code)]
     pub fn abs(self) -> Self {
         Self(self.0.saturating_abs())
     }
 
+    /// Returns the saturated negation
     #[inline]
+    #[allow(dead_code)]
     pub fn saturating_neg(self) -> Self {
         Self(self.0.saturating_neg())
     }
 
+    /// Linear interpolation between self and other
+    /// 
+    /// # Arguments
+    /// * `other` - End value
+    /// * `t` - Interpolation parameter (0.0 = self, 1.0 = other)
     #[inline]
+    #[allow(dead_code)]
     pub fn lerp(self, other: Self, t: Self) -> Self {
         let diff = other.saturating_sub(self);
         let scaled = t.mul_q15(diff);
         self.saturating_add(scaled)
     }
 
+    /// Left shift by n bits (equivalent to multiplication by 2^n)
+    /// 
+    /// # Arguments
+    /// * `n` - Number of bits to shift
     #[inline]
+    #[allow(dead_code)]
     pub fn shl(self, n: u32) -> Self {
         Self(self.0.saturating_mul(1i16.wrapping_shl(n)))
     }
 
+    /// Right shift by n bits (equivalent to division by 2^n)
+    /// 
+    /// # Arguments
+    /// * `n` - Number of bits to shift
     #[inline]
+    #[allow(dead_code)]
     pub fn shr(self, n: u32) -> Self {
         Self(self.0 >> n)
     }
@@ -135,18 +166,27 @@ pub struct Q31(pub i32);
 impl Q31 {
     pub const SCALE: i64 = 2147483648;
     
+    /// Maximum Q31 value (1.0)
+    #[allow(dead_code)]
     pub const MAX: Q31 = Q31(i32::MAX);
     
+    /// Minimum Q31 value (-1.0)
+    #[allow(dead_code)]
     pub const MIN: Q31 = Q31(i32::MIN);
     
+    /// Zero Q31 value (0.0)
+    #[allow(dead_code)]
     pub const ZERO: Q31 = Q31(0);
 
     #[inline]
+    /// Creates Q31 from raw integer value
+    #[allow(dead_code)]
     pub const fn from_raw(raw: i32) -> Self {
         Self(raw)
     }
 
-    #[inline]
+    /// Returns raw integer value
+    #[allow(dead_code)]
     pub const fn to_raw(self) -> i32 {
         self.0
     }
@@ -173,6 +213,8 @@ impl Q31 {
     }
 
     #[inline]
+    /// Multiplies two Q31 numbers with proper rounding
+    #[allow(dead_code)]
     pub fn mul_q31(self, rhs: Self) -> Self {
         let product = (self.0 as i64) * (rhs.0 as i64);
         let shifted = (product + (1i64 << 30)) >> 31;

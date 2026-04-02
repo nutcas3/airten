@@ -1,6 +1,9 @@
 use crate::Sample;
 use crate::nn::activation::{Activation, ActivationType};
 
+/// Neural network layer with weights, biases, and activation function
+/// 
+/// Uses static references to weights and biases for no-heap operation.
 pub struct Layer {
     weights: &'static [Sample],
     biases: &'static [Sample],
@@ -10,6 +13,13 @@ pub struct Layer {
 }
 
 impl Layer {
+    /// Creates a new layer with the given weights, biases, and sizes
+    /// 
+    /// # Arguments
+    /// * `weights` - Static reference to weight matrix
+    /// * `biases` - Static reference to bias vector
+    /// * `input_size` - Number of input neurons
+    /// * `output_size` - Number of output neurons
     pub const fn new(
         weights: &'static [Sample],
         biases: &'static [Sample],
@@ -28,21 +38,29 @@ impl Layer {
         }
     }
 
+    /// Sets the activation function for this layer
     pub fn with_activation(mut self, activation: Activation) -> Self {
         self.activation = activation;
         self
     }
 
+    /// Returns the input size of this layer
     #[inline]
     pub fn input_size(&self) -> usize {
         self.input_size
     }
 
+    /// Returns the output size of this layer
     #[inline]
     pub fn output_size(&self) -> usize {
         self.output_size
     }
 
+    /// Performs forward pass through this layer with activation
+    /// 
+    /// # Arguments
+    /// * `input` - Input samples
+    /// * `output` - Output buffer (must be at least output_size long)
     pub fn forward(&self, input: &[Sample], output: &mut [Sample]) {
         debug_assert_eq!(input.len(), self.input_size);
         debug_assert_eq!(output.len(), self.output_size);
@@ -59,6 +77,11 @@ impl Layer {
         }
     }
 
+    /// Performs linear forward pass (matrix multiplication + bias) without activation
+    /// 
+    /// # Arguments
+    /// * `input` - Input samples
+    /// * `output` - Output buffer (must be at least output_size long)
     pub fn forward_linear(&self, input: &[Sample], output: &mut [Sample]) {
         debug_assert_eq!(input.len(), self.input_size);
         debug_assert_eq!(output.len(), self.output_size);
@@ -111,11 +134,15 @@ impl DynamicLayer {
         self.activation = activation;
     }
 
+    /// Returns the input size of this dynamic layer
+    #[allow(dead_code)]
     #[inline]
     pub fn input_size(&self) -> usize {
         self.input_size
     }
 
+    /// Returns the output size of this dynamic layer
+    #[allow(dead_code)]
     #[inline]
     pub fn output_size(&self) -> usize {
         self.output_size
@@ -137,6 +164,8 @@ impl DynamicLayer {
         }
     }
 
+    /// Initializes weights using Xavier initialization
+    #[allow(dead_code)]
     pub fn init_xavier(&mut self) {
         let scale = (2.0 / (self.input_size + self.output_size) as Sample).sqrt();
         
