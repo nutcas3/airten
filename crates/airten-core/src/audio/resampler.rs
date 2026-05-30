@@ -9,7 +9,7 @@ pub struct Resampler {
 impl Resampler {
     pub fn new(input_rate: u32, output_rate: u32) -> Self {
         Self {
-            ratio: input_rate as Sample / output_rate as Sample,
+            ratio: f64::from(input_rate) / f64::from(output_rate) as Sample,
             phase: 0.0,
             last_sample: 0.0,
         }
@@ -21,11 +21,11 @@ impl Resampler {
     }
 
     pub fn output_size(&self, input_size: usize) -> usize {
-        ((input_size as Sample) / self.ratio).ceil() as usize
+        ((input_size as f64) / self.ratio).ceil() as usize
     }
 
     pub fn input_size(&self, output_size: usize) -> usize {
-        ((output_size as Sample) * self.ratio).ceil() as usize
+        ((output_size as f64) * self.ratio).ceil() as usize
     }
 
     pub fn process(&mut self, input: &[Sample], output: &mut [Sample]) -> usize {

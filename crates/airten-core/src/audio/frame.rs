@@ -170,7 +170,7 @@ impl AudioFrame {
         }
 
         if count > 0 {
-            (sum_sq / count as f64 as Sample).sqrt()
+            (sum_sq as f64 / count as f64).sqrt() as Sample
         } else {
             0.0
         }
