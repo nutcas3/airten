@@ -4,6 +4,10 @@ use crate::{
 };
 use core::sync::atomic::{AtomicUsize, Ordering};
 
+/// Lock-free ring buffer for audio sample processing
+/// 
+/// This provides a thread-safe circular buffer for audio samples that can be used
+/// for producer-consumer scenarios in audio processing pipelines.
 pub struct RingBuffer<const N: usize> {
     buffer: [Sample; N],
     write_pos: AtomicUsize,
@@ -11,6 +15,8 @@ pub struct RingBuffer<const N: usize> {
 }
 
 impl<const N: usize> RingBuffer<N> {
+    /// Creates a new ring buffer with the given capacity
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             buffer: [0.0; N],
@@ -19,12 +25,16 @@ impl<const N: usize> RingBuffer<N> {
         }
     }
 
+    /// Returns the total capacity of the ring buffer
     #[inline]
+    #[must_use]
     pub const fn capacity(&self) -> usize {
         N - 1
     }
 
+    /// Returns the number of samples currently available for reading
     #[inline]
+    #[must_use]
     pub fn available(&self) -> usize {
         let write = self.write_pos.load(Ordering::Acquire);
         let read = self.read_pos.load(Ordering::Acquire);
@@ -36,21 +46,30 @@ impl<const N: usize> RingBuffer<N> {
         }
     }
 
+    /// Returns the amount of free space available for writing
     #[inline]
+    #[must_use]
     pub fn free(&self) -> usize {
         self.capacity() - self.available()
     }
 
+    /// Returns true if the buffer is empty (no samples to read)
     #[inline]
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.available() == 0
     }
 
+    /// Returns true if the buffer is full (no space to write)
     #[inline]
+    #[must_use]
     pub fn is_full(&self) -> bool {
         self.free() == 0
     }
 
+    /// Writes samples to the ring buffer
+    /// 
+    /// Returns the number of samples actually written
     #[inline]
     pub fn write(&mut self, data: &[Sample]) -> usize {
         let mut written = 0;
@@ -72,6 +91,11 @@ impl<const N: usize> RingBuffer<N> {
         written
     }
 
+    /// Writes all samples to the ring buffer, returns error if insufficient space
+    /// 
+    /// # Errors
+    /// 
+    /// Returns `Error::BufferFull` if there isn't enough space to write all samples
     pub fn write_exact(&mut self, data: &[Sample]) -> Result<()> {
         if data.len() > self.free() {
             return Err(Error::BufferFull);
@@ -82,6 +106,9 @@ impl<const N: usize> RingBuffer<N> {
         Ok(())
     }
 
+    /// Reads samples from the ring buffer
+    /// 
+    /// Returns the number of samples actually read
     #[inline]
     pub fn read(&mut self, data: &mut [Sample]) -> usize {
         let mut read_count = 0;
@@ -102,6 +129,11 @@ impl<const N: usize> RingBuffer<N> {
         read_count
     }
 
+    /// Reads all samples from the ring buffer, returns error if insufficient data
+    /// 
+    /// # Errors
+    /// 
+    /// Returns `Error::BufferEmpty` if there isn't enough data to read all samples
     pub fn read_exact(&mut self, data: &mut [Sample]) -> Result<()> {
         if data.len() > self.available() {
             return Err(Error::BufferEmpty);
@@ -112,6 +144,9 @@ impl<const N: usize> RingBuffer<N> {
         Ok(())
     }
 
+    /// Peeks at samples without removing them from the buffer
+    /// 
+    /// Returns the number of samples actually peeked
     pub fn peek(&self, data: &mut [Sample]) -> usize {
         let mut read_pos = self.read_pos.load(Ordering::Acquire);
         let write_pos = self.write_pos.load(Ordering::Acquire);
@@ -130,6 +165,9 @@ impl<const N: usize> RingBuffer<N> {
         count
     }
 
+    /// Skips samples in the buffer without reading them
+    /// 
+    /// Returns the number of samples actually skipped
     pub fn skip(&mut self, count: usize) -> usize {
         let available = self.available();
         let to_skip = count.min(available);
@@ -141,6 +179,7 @@ impl<const N: usize> RingBuffer<N> {
         to_skip
     }
 
+    /// Clears the ring buffer, resetting both read and write positions
     pub fn clear(&mut self) {
         self.read_pos.store(0, Ordering::Release);
         self.write_pos.store(0, Ordering::Release);
