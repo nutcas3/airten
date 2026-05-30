@@ -106,9 +106,9 @@ impl BiquadFilter {
         let cos_omega = omega.cos();
         let alpha = sin_omega / (2.0 * q);
 
-        let b0 = (1.0 + cos_omega) / 2.0;
+        let b0 = f32::midpoint(1.0, cos_omega);
         let b1 = -(1.0 + cos_omega);
-        let b2 = (1.0 + cos_omega) / 2.0;
+        let b2 = f32::midpoint(1.0, cos_omega);
         let a0 = 1.0 + alpha;
         let a1 = -2.0 * cos_omega;
         let a2 = 1.0 - alpha;

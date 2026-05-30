@@ -134,7 +134,7 @@ impl Activation {
             }
             ActivationType::GELU => {
                 let sqrt_2_pi = 0.797_884_6;
-                let inner = sqrt_2_pi * (x + 0.044715 * x * x * x);
+                let inner = sqrt_2_pi * (x + 0.044_715 * x * x * x);
                 #[cfg(feature = "std")]
                 {
                     0.5 * x * (1.0 + inner.tanh())
@@ -251,18 +251,18 @@ impl Activation {
             }
             ActivationType::GELU => {
                 let sqrt_2_pi = 0.797_884_6;
-                let inner = sqrt_2_pi * (x + 0.044715 * x * x * x);
+                let inner = sqrt_2_pi * (x + 0.044_715 * x * x * x);
                 #[cfg(feature = "std")]
                 {
                     let tanh_inner = inner.tanh();
                     let sech2 = 1.0 - tanh_inner * tanh_inner;
-                    0.5 * (1.0 + tanh_inner) + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134145 * x * x)
+                    0.5 * (1.0 + tanh_inner) + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134_145 * x * x)
                 }
                 #[cfg(not(feature = "std"))]
                 {
                     let tanh_inner = Float::tanh(inner);
                     let sech2 = 1.0 - tanh_inner * tanh_inner;
-                    0.5 * (1.0 + tanh_inner) + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134145 * x * x)
+                    0.5 * (1.0 + tanh_inner) + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134_145 * x * x)
                 }
             }
         }
