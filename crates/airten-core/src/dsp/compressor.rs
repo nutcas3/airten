@@ -131,50 +131,6 @@ impl Compressor {
     }
 }
 
-/// Limiter - compressor with infinite ratio
-pub struct Limiter {
-    compressor: Compressor,
-    lookahead_buffer: [Sample; 256],
-    lookahead_pos: usize,
-    lookahead_samples: usize,
-}
-
-impl Limiter {
-    pub fn new(sample_rate: Sample) -> Self {
-        let mut compressor = Compressor::new(sample_rate);
-        compressor.set_ratio(100.0); // Near-infinite ratio
-        compressor.set_attack(0.1);
-        compressor.set_release(50.0);
-        compressor.set_knee(0.0); // Hard knee for limiting
-
-        Self {
-            compressor,
-            lookahead_buffer: [0.0; 256],
-            lookahead_pos: 0,
-            lookahead_samples: 0,
-        }
-    }
-
-    pub fn set_ceiling(&mut self, ceiling_db: Sample) {
-        self.compressor.set_threshold(ceiling_db);
-    }
-
-    pub fn process(&mut self, input: Sample) -> Sample {
-        if self.lookahead_samples == 0 {
-            return self.compressor.process(input);
-        }
-
-        // Store input in lookahead buffer
-        let output_pos = (self.lookahead_pos + 256 - self.lookahead_samples) % 256;
-        let delayed = self.lookahead_buffer[output_pos];
-        self.lookahead_buffer[self.lookahead_pos] = input;
-        self.lookahead_pos = (self.lookahead_pos + 1) % 256;
-
-        // Process with lookahead
-        self.compressor.process(delayed)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
