@@ -39,30 +39,61 @@ impl NoiseGate {
         gate
     }
 
+    /// Sets the threshold level in dB
+    ///
+    /// # Arguments
+    /// * `threshold_db` - The threshold level in decibels
     pub fn set_threshold(&mut self, threshold_db: Sample) {
         self.threshold_db = threshold_db;
     }
 
+    /// Sets the hysteresis level in dB
+    ///
+    /// # Arguments
+    /// * `hysteresis_db` - The hysteresis level in decibels
     pub fn set_hysteresis(&mut self, hysteresis_db: Sample) {
         self.hysteresis_db = hysteresis_db.max(0.0);
     }
 
+    /// Sets the attack time in milliseconds
+    ///
+    /// # Arguments
+    /// * `attack_ms` - The attack time in milliseconds
     pub fn set_attack(&mut self, attack_ms: Sample) {
         self.attack_coeff = time_constant(attack_ms, self.sample_rate);
     }
 
+    /// Sets the hold time in milliseconds
+    ///
+    /// # Arguments
+    /// * `hold_ms` - The hold time in milliseconds
     pub fn set_hold(&mut self, hold_ms: Sample) {
         self.hold_samples = (hold_ms * 0.001 * self.sample_rate) as usize;
     }
 
+    /// Sets the release time in milliseconds
+    ///
+    /// # Arguments
+    /// * `release_ms` - The release time in milliseconds
     pub fn set_release(&mut self, release_ms: Sample) {
         self.release_coeff = time_constant(release_ms, self.sample_rate);
     }
 
+    /// Sets the range of gain reduction in dB
+    ///
+    /// # Arguments
+    /// * `range_db` - The maximum gain reduction in decibels
     pub fn set_range(&mut self, range_db: Sample) {
         self.range_db = range_db.min(0.0);
     }
 
+    /// Processes a single sample through the noise gate
+    ///
+    /// # Arguments
+    /// * `input` - The input sample to process
+    ///
+    /// # Returns
+    /// The processed sample with gain reduction applied
     #[inline]
     pub fn process(&mut self, input: Sample) -> Sample {
         let input_abs = input.abs();
@@ -108,12 +139,19 @@ impl NoiseGate {
         input * self.gain
     }
 
+    /// Processes a block of samples through the noise gate
+    ///
+    /// # Arguments
+    /// * `samples` - The slice of samples to process in-place
     pub fn process_block(&mut self, samples: &mut [Sample]) {
         for sample in samples.iter_mut() {
             *sample = self.process(*sample);
         }
     }
 
+    /// Resets the gate to its initial state
+    ///
+    /// This clears the envelope follower and gain reduction
     pub fn reset(&mut self) {
         self.envelope = 0.0;
         self.gain = 0.0;
@@ -121,14 +159,29 @@ impl NoiseGate {
         self.is_open = false;
     }
 
+    /// Returns true if the gate is currently open (allowing signal to pass)
+    ///
+    /// # Returns
+    /// True if the gate is open, false if it's closed
+    #[must_use]
     pub fn is_open(&self) -> bool {
         self.is_open
     }
 
+    /// Returns the current gain reduction factor
+    ///
+    /// # Returns
+    /// The current gain reduction factor (1.0 = no reduction, 0.0 = full reduction)
+    #[must_use]
     pub fn gain(&self) -> Sample {
         self.gain
     }
 
+    /// Returns the current gain reduction in decibels
+    ///
+    /// # Returns
+    /// The current gain reduction in decibels (0.0 = no reduction, negative values = reduction)
+    #[must_use]
     pub fn gain_reduction_db(&self) -> Sample {
         linear_to_db(self.gain)
     }

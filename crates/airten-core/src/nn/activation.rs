@@ -256,13 +256,15 @@ impl Activation {
                 {
                     let tanh_inner = inner.tanh();
                     let sech2 = 1.0 - tanh_inner * tanh_inner;
-                    0.5 * (1.0 + tanh_inner) + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134_145 * x * x)
+                    0.5 * (1.0 + tanh_inner)
+                        + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134_145 * x * x)
                 }
                 #[cfg(not(feature = "std"))]
                 {
                     let tanh_inner = Float::tanh(inner);
                     let sech2 = 1.0 - tanh_inner * tanh_inner;
-                    0.5 * (1.0 + tanh_inner) + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134_145 * x * x)
+                    0.5 * (1.0 + tanh_inner)
+                        + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134_145 * x * x)
                 }
             }
         }

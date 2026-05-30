@@ -1,7 +1,7 @@
 use crate::{MAX_CHANNELS, MAX_FRAME_SIZE, Sample};
 
 /// Multi-channel audio frame for sample storage and processing
-/// 
+///
 /// This provides a fixed-size audio frame suitable for real-time audio processing.
 /// The large stack arrays are intentional for performance in audio processing.
 #[repr(C)]

@@ -350,6 +350,7 @@ pub extern "C" fn airten_version_info(major: *mut u32, minor: *mut u32, patch: *
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ptr;
 
     #[test]
     fn test_processor_lifecycle() {

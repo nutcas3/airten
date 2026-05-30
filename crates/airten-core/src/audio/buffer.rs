@@ -10,7 +10,7 @@ use crate::{
 use crate::{MAX_CHANNELS, MAX_FRAME_SIZE};
 
 /// Multi-channel audio buffer for sample storage and processing
-/// 
+///
 /// This provides a flexible audio buffer that can work with both heap-allocated
 /// and stack-allocated memory depending on the `alloc` feature.
 pub struct AudioBuffer {
@@ -25,14 +25,14 @@ pub struct AudioBuffer {
 
 impl AudioBuffer {
     /// Creates a new audio buffer with the specified parameters (no_std version)
-    /// 
+    ///
     /// # Arguments
     /// * `num_samples` - Number of samples per channel
     /// * `num_channels` - Number of audio channels  
     /// * `sample_rate` - Sample rate in Hz
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns `Error::BufferTooLarge` if num_samples exceeds MAX_FRAME_SIZE
     /// Returns `Error::InvalidChannelCount` if num_channels is 0 or exceeds MAX_CHANNELS
     #[cfg(not(feature = "alloc"))]
@@ -53,14 +53,14 @@ impl AudioBuffer {
     }
 
     /// Creates a new audio buffer with the specified parameters (alloc version)
-    /// 
+    ///
     /// # Arguments
     /// * `num_samples` - Number of samples per channel
     /// * `num_channels` - Number of audio channels  
     /// * `sample_rate` - Sample rate in Hz
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns `Error::InvalidChannelCount` if `num_channels` is 0
     /// Returns `Error::AllocationFailed` if memory allocation fails
     #[cfg(feature = "alloc")]
@@ -119,7 +119,7 @@ impl AudioBuffer {
     }
 
     /// Gets a sample from the specified channel and frame
-    /// 
+    ///
     /// Returns None if channel or frame indices are out of bounds
     #[inline]
     #[must_use]
@@ -132,7 +132,7 @@ impl AudioBuffer {
     }
 
     /// Sets a sample at the specified channel and frame
-    /// 
+    ///
     /// Does nothing if channel or frame indices are out of bounds
     #[inline]
     pub fn set(&mut self, channel: usize, frame: usize, value: Sample) {
@@ -142,7 +142,7 @@ impl AudioBuffer {
     }
 
     /// Gets an immutable slice to the specified channel's samples
-    /// 
+    ///
     /// Returns None if channel index is out of bounds
     #[must_use]
     pub fn channel(&self, index: usize) -> Option<&[Sample]> {
@@ -156,7 +156,7 @@ impl AudioBuffer {
     }
 
     /// Gets a mutable slice to the specified channel's samples
-    /// 
+    ///
     /// Returns None if channel index is out of bounds
     pub fn channel_mut(&mut self, index: usize) -> Option<&mut [Sample]> {
         if index < self.num_channels {
@@ -191,8 +191,8 @@ impl AudioBuffer {
     }
 
     /// Copies samples from interleaved data into this buffer
-    /// 
-    /// The interleaved data should be in channel-major order: [ch0[0], ch1[0], ch0[1], ch1[1], ...]
+    ///
+    /// The interleaved data should be in channel-major order: \[ch0\[0\], ch1\[0\], ch0\[1\], ch1\[1\], ...\]
     pub fn from_interleaved(&mut self, interleaved: &[Sample]) {
         let frames = interleaved.len() / self.num_channels;
         let frames = frames.min(self.num_samples);
@@ -209,8 +209,8 @@ impl AudioBuffer {
     }
 
     /// Copies samples from this buffer to interleaved data
-    /// 
-    /// The interleaved output will be in channel-major order: [ch0[0], ch1[0], ch0[1], ch1[1], ...]
+    ///
+    /// The interleaved output will be in channel-major order: \[ch0\[0\], ch1\[0\], ch0\[1\], ch1\[1\], ...\]
     pub fn to_interleaved(&self, interleaved: &mut [Sample]) {
         let frames = interleaved.len() / self.num_channels;
         let frames = frames.min(self.num_samples);

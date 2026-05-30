@@ -5,7 +5,7 @@ use crate::{
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 /// Lock-free ring buffer for audio sample processing
-/// 
+///
 /// This provides a thread-safe circular buffer for audio samples that can be used
 /// for producer-consumer scenarios in audio processing pipelines.
 pub struct RingBuffer<const N: usize> {
@@ -68,9 +68,10 @@ impl<const N: usize> RingBuffer<N> {
     }
 
     /// Writes samples to the ring buffer
-    /// 
+    ///
     /// Returns the number of samples actually written
     #[inline]
+    #[allow(clippy::unnecessary_operation)]
     pub fn write(&mut self, data: &[Sample]) -> usize {
         let mut written = 0;
 
@@ -92,9 +93,9 @@ impl<const N: usize> RingBuffer<N> {
     }
 
     /// Writes all samples to the ring buffer, returns error if insufficient space
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns `Error::BufferFull` if there isn't enough space to write all samples
     pub fn write_exact(&mut self, data: &[Sample]) -> Result<()> {
         if data.len() > self.free() {
@@ -107,9 +108,10 @@ impl<const N: usize> RingBuffer<N> {
     }
 
     /// Reads samples from the ring buffer
-    /// 
+    ///
     /// Returns the number of samples actually read
     #[inline]
+    #[allow(clippy::unnecessary_operation)]
     pub fn read(&mut self, data: &mut [Sample]) -> usize {
         let mut read_count = 0;
 
@@ -130,9 +132,9 @@ impl<const N: usize> RingBuffer<N> {
     }
 
     /// Reads all samples from the ring buffer, returns error if insufficient data
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns `Error::BufferEmpty` if there isn't enough data to read all samples
     pub fn read_exact(&mut self, data: &mut [Sample]) -> Result<()> {
         if data.len() > self.available() {
@@ -145,8 +147,9 @@ impl<const N: usize> RingBuffer<N> {
     }
 
     /// Peeks at samples without removing them from the buffer
-    /// 
+    ///
     /// Returns the number of samples actually peeked
+    #[allow(clippy::unnecessary_operation)]
     pub fn peek(&self, data: &mut [Sample]) -> usize {
         let mut read_pos = self.read_pos.load(Ordering::Acquire);
         let write_pos = self.write_pos.load(Ordering::Acquire);
@@ -166,7 +169,7 @@ impl<const N: usize> RingBuffer<N> {
     }
 
     /// Skips samples in the buffer without reading them
-    /// 
+    ///
     /// Returns the number of samples actually skipped
     pub fn skip(&mut self, count: usize) -> usize {
         let available = self.available();
@@ -210,7 +213,12 @@ mod tests {
         let mut output = [0.0; 3];
         let read = rb.read(&mut output);
         assert_eq!(read, 3);
-        assert_eq!(output, [1.0, 2.0, 3.0]);
+        assert!(
+            output
+                .iter()
+                .zip([1.0, 2.0, 3.0].iter())
+                .all(|(a, b)| (a - b).abs() < f32::EPSILON)
+        );
         assert!(rb.is_empty());
     }
 
@@ -228,7 +236,12 @@ mod tests {
         let mut output = [0.0; 5];
         let read = rb.read(&mut output);
         assert_eq!(read, 5);
-        assert_eq!(output, [4.0, 5.0, 6.0, 7.0, 8.0]);
+        assert!(
+            output
+                .iter()
+                .zip([4.0, 5.0, 6.0, 7.0, 8.0].iter())
+                .all(|(a, b)| (a - b).abs() < f32::EPSILON)
+        );
     }
 
     #[test]
@@ -248,7 +261,12 @@ mod tests {
         let mut peek_buf = [0.0; 2];
         let peeked = rb.peek(&mut peek_buf);
         assert_eq!(peeked, 2);
-        assert_eq!(peek_buf, [1.0, 2.0]);
+        assert!(
+            peek_buf
+                .iter()
+                .zip([1.0, 2.0].iter())
+                .all(|(a, b)| (a - b).abs() < f32::EPSILON)
+        );
 
         assert_eq!(rb.available(), 3);
     }

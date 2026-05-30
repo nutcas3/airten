@@ -1,6 +1,9 @@
 use crate::Sample;
 use crate::dsp::constants::TWO_PI;
 
+#[cfg(not(feature = "std"))]
+use libm::{cosf, powf, sinf};
+
 /// Types of biquad filters
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FilterType {
@@ -198,10 +201,22 @@ impl BiquadFilter {
     /// Creates a low-shelf filter
     #[must_use]
     pub fn low_shelf(sample_rate: Sample, cutoff: Sample, gain_db: Sample) -> Self {
-        let a = 10.0_f32.powf(gain_db / 40.0);
+        let a = if cfg!(feature = "std") {
+            10.0_f32.powf(gain_db / 40.0)
+        } else {
+            powf(10.0, gain_db / 40.0)
+        };
         let omega = TWO_PI * cutoff / sample_rate;
-        let sin_omega = omega.sin();
-        let cos_omega = omega.cos();
+        let sin_omega = if cfg!(feature = "std") {
+            omega.sin()
+        } else {
+            sinf(omega)
+        };
+        let cos_omega = if cfg!(feature = "std") {
+            omega.cos()
+        } else {
+            cosf(omega)
+        };
         let alpha = sin_omega / 2.0 * ((a + 1.0 / a) * (1.0 / 0.707 - 1.0) + 2.0).sqrt();
         let two_sqrt_a_alpha = 2.0 * a.sqrt() * alpha;
 
@@ -224,10 +239,22 @@ impl BiquadFilter {
     /// Creates a high-shelf filter
     #[must_use]
     pub fn high_shelf(sample_rate: Sample, cutoff: Sample, gain_db: Sample) -> Self {
-        let a = 10.0_f32.powf(gain_db / 40.0);
+        let a = if cfg!(feature = "std") {
+            10.0_f32.powf(gain_db / 40.0)
+        } else {
+            powf(10.0, gain_db / 40.0)
+        };
         let omega = TWO_PI * cutoff / sample_rate;
-        let sin_omega = omega.sin();
-        let cos_omega = omega.cos();
+        let sin_omega = if cfg!(feature = "std") {
+            omega.sin()
+        } else {
+            sinf(omega)
+        };
+        let cos_omega = if cfg!(feature = "std") {
+            omega.cos()
+        } else {
+            cosf(omega)
+        };
         let alpha = sin_omega / 2.0 * ((a + 1.0 / a) * (1.0 / 0.707 - 1.0) + 2.0).sqrt();
         let two_sqrt_a_alpha = 2.0 * a.sqrt() * alpha;
 
