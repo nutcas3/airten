@@ -1,5 +1,9 @@
 use crate::{MAX_CHANNELS, MAX_FRAME_SIZE, Sample};
 
+/// Multi-channel audio frame for sample storage and processing
+/// 
+/// This provides a fixed-size audio frame suitable for real-time audio processing.
+/// The large stack arrays are intentional for performance in audio processing.
 #[repr(C)]
 #[derive(Clone)]
 pub struct AudioFrame {
@@ -10,6 +14,8 @@ pub struct AudioFrame {
 }
 
 impl AudioFrame {
+    /// Creates a new audio frame with default settings
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             samples: [[0.0; MAX_FRAME_SIZE]; MAX_CHANNELS],
@@ -19,6 +25,8 @@ impl AudioFrame {
         }
     }
 
+    /// Creates a new audio frame with the specified configuration
+    #[must_use]
     pub fn with_config(num_samples: usize, num_channels: usize, sample_rate: u32) -> Self {
         debug_assert!(num_samples <= MAX_FRAME_SIZE);
         debug_assert!(num_channels <= MAX_CHANNELS);
@@ -31,22 +39,30 @@ impl AudioFrame {
         }
     }
 
+    /// Returns the number of samples per channel
     #[inline]
+    #[must_use]
     pub fn num_samples(&self) -> usize {
         self.num_samples
     }
 
+    /// Returns the number of audio channels
     #[inline]
+    #[must_use]
     pub fn num_channels(&self) -> usize {
         self.num_channels
     }
 
+    /// Returns the sample rate in Hz
     #[inline]
+    #[must_use]
     pub fn sample_rate(&self) -> u32 {
         self.sample_rate
     }
 
+    /// Gets an immutable slice to the specified channel's samples
     #[inline]
+    #[must_use]
     pub fn channel(&self, index: usize) -> Option<&[Sample]> {
         if index < self.num_channels {
             Some(&self.samples[index][..self.num_samples])
@@ -55,6 +71,7 @@ impl AudioFrame {
         }
     }
 
+    /// Gets a mutable slice to the specified channel's samples
     #[inline]
     pub fn channel_mut(&mut self, index: usize) -> Option<&mut [Sample]> {
         if index < self.num_channels {
@@ -64,6 +81,7 @@ impl AudioFrame {
         }
     }
 
+    /// Copies samples from a slice to the specified channel
     pub fn copy_from_slice(&mut self, channel: usize, src: &[Sample]) {
         if channel < self.num_channels {
             let len = src.len().min(MAX_FRAME_SIZE);
@@ -72,6 +90,7 @@ impl AudioFrame {
         }
     }
 
+    /// Copies samples from the specified channel to a slice
     pub fn copy_to_slice(&self, channel: usize, dst: &mut [Sample]) {
         if channel < self.num_channels {
             let len = dst.len().min(self.num_samples);
@@ -79,6 +98,7 @@ impl AudioFrame {
         }
     }
 
+    /// Copies samples from interleaved data into this frame
     pub fn from_interleaved(&mut self, interleaved: &[Sample]) {
         let total_samples = interleaved.len() / self.num_channels;
         self.num_samples = total_samples.min(MAX_FRAME_SIZE);
@@ -92,6 +112,7 @@ impl AudioFrame {
         }
     }
 
+    /// Copies samples from this frame to interleaved data
     pub fn to_interleaved(&self, interleaved: &mut [Sample]) {
         for i in 0..self.num_samples {
             for ch in 0..self.num_channels {
@@ -103,6 +124,7 @@ impl AudioFrame {
         }
     }
 
+    /// Clears all samples in the frame to zero
     pub fn clear(&mut self) {
         for ch in 0..self.num_channels {
             for sample in &mut self.samples[ch][..self.num_samples] {
@@ -148,7 +170,7 @@ impl AudioFrame {
         }
 
         if count > 0 {
-            (sum_sq / count as Sample).sqrt()
+            (sum_sq / count as f64 as Sample).sqrt()
         } else {
             0.0
         }

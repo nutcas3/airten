@@ -61,7 +61,7 @@ impl AudioBuffer {
     /// 
     /// # Errors
     /// 
-    /// Returns `Error::InvalidChannelCount` if num_channels is 0
+    /// Returns `Error::InvalidChannelCount` if `num_channels` is 0
     /// Returns `Error::AllocationFailed` if memory allocation fails
     #[cfg(feature = "alloc")]
     pub fn new(num_samples: usize, num_channels: usize, sample_rate: u32) -> Result<Self> {
@@ -185,7 +185,7 @@ impl AudioBuffer {
     /// Clears all samples in the buffer to zero
     pub fn clear(&mut self) {
         let len = self.len();
-        for sample in self.data[..len].iter_mut() {
+        for sample in &mut self.data[..len] {
             *sample = 0.0;
         }
     }
