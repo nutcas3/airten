@@ -1,4 +1,4 @@
-//! # AirTen Core
+//! # `AirTen` Core
 //!
 //! Real-time neural network audio processing engine designed for embedded systems,
 //! WebAssembly, and low-latency applications.

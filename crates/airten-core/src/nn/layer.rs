@@ -60,7 +60,7 @@ impl Layer {
     ///
     /// # Arguments
     /// * `input` - Input samples
-    /// * `output` - Output buffer (must be at least output_size long)
+    /// * `output` - Output buffer (must be at least `output_size` long)
     pub fn forward(&self, input: &[Sample], output: &mut [Sample]) {
         debug_assert_eq!(input.len(), self.input_size);
         debug_assert_eq!(output.len(), self.output_size);
@@ -81,7 +81,7 @@ impl Layer {
     ///
     /// # Arguments
     /// * `input` - Input samples
-    /// * `output` - Output buffer (must be at least output_size long)
+    /// * `output` - Output buffer (must be at least `output_size` long)
     pub fn forward_linear(&self, input: &[Sample], output: &mut [Sample]) {
         debug_assert_eq!(input.len(), self.input_size);
         debug_assert_eq!(output.len(), self.output_size);
@@ -95,133 +95,6 @@ impl Layer {
             }
 
             output[i] = sum;
-        }
-    }
-}
-
-#[cfg(feature = "alloc")]
-pub struct DynamicLayer {
-    weights: alloc::vec::Vec<Sample>,
-    biases: alloc::vec::Vec<Sample>,
-    input_size: usize,
-    output_size: usize,
-    activation: Activation,
-}
-
-#[cfg(feature = "alloc")]
-impl DynamicLayer {
-    pub fn new(input_size: usize, output_size: usize) -> Self {
-        Self {
-            weights: alloc::vec![0.0; input_size * output_size],
-            biases: alloc::vec![0.0; output_size],
-            input_size,
-            output_size,
-            activation: Activation::default(),
-        }
-    }
-
-    pub fn set_weights(&mut self, weights: &[Sample]) {
-        debug_assert_eq!(weights.len(), self.input_size * self.output_size);
-        self.weights.copy_from_slice(weights);
-    }
-
-    pub fn set_biases(&mut self, biases: &[Sample]) {
-        debug_assert_eq!(biases.len(), self.output_size);
-        self.biases.copy_from_slice(biases);
-    }
-
-    pub fn set_activation(&mut self, activation: Activation) {
-        self.activation = activation;
-    }
-
-    /// Returns the input size of this dynamic layer
-    #[allow(dead_code)]
-    #[inline]
-    pub fn input_size(&self) -> usize {
-        self.input_size
-    }
-
-    /// Returns the output size of this dynamic layer
-    #[allow(dead_code)]
-    #[inline]
-    pub fn output_size(&self) -> usize {
-        self.output_size
-    }
-
-    pub fn forward(&self, input: &[Sample], output: &mut [Sample]) {
-        debug_assert_eq!(input.len(), self.input_size);
-        debug_assert_eq!(output.len(), self.output_size);
-
-        for i in 0..self.output_size {
-            let mut sum = self.biases[i];
-            let weight_offset = i * self.input_size;
-
-            for j in 0..self.input_size {
-                sum += input[j] * self.weights[weight_offset + j];
-            }
-
-            output[i] = self.activation.apply(sum);
-        }
-    }
-
-    /// Initializes weights using Xavier initialization
-    #[allow(dead_code)]
-    pub fn init_xavier(&mut self) {
-        let scale = (2.0 / (self.input_size + self.output_size) as Sample).sqrt();
-
-        let mut seed: u32 = 12345;
-        for w in self.weights.iter_mut() {
-            seed = seed.wrapping_mul(1103515245).wrapping_add(12345);
-            let rand = ((seed >> 16) as Sample / 32768.0) - 1.0;
-            *w = rand * scale;
-        }
-    }
-}
-
-pub struct Conv1D {
-    weights: &'static [Sample],
-    bias: Sample,
-    kernel_size: usize,
-    stride: usize,
-    activation: Activation,
-}
-
-impl Conv1D {
-    pub const fn new(
-        weights: &'static [Sample],
-        bias: Sample,
-        kernel_size: usize,
-        stride: usize,
-    ) -> Self {
-        Self {
-            weights,
-            bias,
-            kernel_size,
-            stride,
-            activation: Activation {
-                activation_type: ActivationType::ReLU,
-                alpha: 0.01,
-            },
-        }
-    }
-
-    pub fn output_size(&self, input_size: usize) -> usize {
-        (input_size - self.kernel_size) / self.stride + 1
-    }
-
-    pub fn forward(&self, input: &[Sample], output: &mut [Sample]) {
-        let out_len = self.output_size(input.len());
-        debug_assert!(output.len() >= out_len);
-
-        for i in 0..out_len {
-            let start = i * self.stride;
-            let mut sum = self.bias;
-
-            for k in 0..self.kernel_size {
-                sum += input[start + k] * self.weights[k];
-            }
-
-            output[i] = self.activation.apply(sum);
         }
     }
 }

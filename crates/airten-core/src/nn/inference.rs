@@ -140,38 +140,6 @@ impl Default for NeuralNetwork {
     }
 }
 
-pub struct DenoiserNetwork {
-    network: NeuralNetwork,
-    frame_size: usize,
-}
-
-impl DenoiserNetwork {
-    pub fn new(frame_size: usize) -> Self {
-        Self {
-            network: NeuralNetwork::new(),
-            frame_size,
-        }
-    }
-
-    pub fn process(&mut self, input: &[Sample], output: &mut [Sample]) -> Result<()> {
-        if input.len() != self.frame_size || output.len() != self.frame_size {
-            return Err(Error::InvalidBufferSize);
-        }
-
-        // If no model loaded, pass through
-        if self.network.num_layers() == 0 {
-            output.copy_from_slice(input);
-            return Ok(());
-        }
-
-        self.network.forward(input, output)
-    }
-
-    pub fn network_mut(&mut self) -> &mut NeuralNetwork {
-        &mut self.network
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
