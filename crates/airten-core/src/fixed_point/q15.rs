@@ -1,11 +1,16 @@
 use crate::Sample;
 use core::ops::{Add, Sub, Mul, Neg};
 
+/// Q15 fixed-point number format (16-bit signed integer with 15 fractional bits)
+/// 
+/// Q15 format represents numbers in the range [-1.0, 1.0) using 16-bit signed integers.
+/// The value 32767 (0x7FFF) represents approximately 1.0, and -32768 (0x8000) represents -1.0.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 #[repr(transparent)]
 pub struct Q15(pub i16);
 
 impl Q15 {
+    /// Scale factor for Q15 format (2^15 = 32768)
     pub const SCALE: i32 = 32768; 
     /// Maximum Q15 value (1.0)
     #[allow(dead_code)]
@@ -20,8 +25,8 @@ impl Q15 {
     #[allow(dead_code)]
     pub const ONE: Q15 = Q15(i16::MAX);
 
-    #[inline]
     /// Creates Q15 from raw integer value
+    #[inline]
     #[allow(dead_code)]
     pub const fn from_raw(raw: i16) -> Self {
         Self(raw)
@@ -33,6 +38,7 @@ impl Q15 {
         self.0
     }
 
+    /// Creates Q15 from f32 value, clamping to valid range
     #[inline]
     pub fn from_f32(x: Sample) -> Self {
         let scaled = (x * Self::SCALE as Sample).round();
@@ -40,11 +46,13 @@ impl Q15 {
         Self(clamped as i16)
     }
 
+    /// Converts Q15 to f32 value
     #[inline]
     pub fn to_f32(self) -> Sample {
         (self.0 as Sample) / Self::SCALE as Sample
     }
 
+    /// Saturating addition that clamps to valid Q15 range
     #[inline]
     pub fn saturating_add(self, rhs: Self) -> Self {
         Self(self.0.saturating_add(rhs.0))

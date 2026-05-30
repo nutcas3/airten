@@ -1,22 +1,38 @@
 use core::fmt;
 
+/// Result type for AirTen operations
 pub type Result<T> = core::result::Result<T, Error>;
 
+/// Errors that can occur during audio processing
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Error {
+    /// Buffer size exceeds maximum allowed
     BufferTooLarge,
+    /// Invalid buffer size provided
     InvalidBufferSize,
+    /// Invalid sample rate provided
     InvalidSampleRate,
+    /// Invalid channel count provided
     InvalidChannelCount,
+    /// Channel index is out of bounds
     ChannelOutOfBounds,
+    /// Buffer is full and cannot accept more data
     BufferFull,
+    /// Buffer is empty and cannot provide data
     BufferEmpty,
+    /// Invalid filter parameters provided
     InvalidFilterParams,
+    /// Invalid compressor parameters provided
     InvalidCompressorParams,
+    /// Neural network inference error
     InferenceError,
+    /// Neural network model not loaded
     ModelNotLoaded,
+    /// Invalid model format provided
     InvalidModelFormat,
+    /// Memory allocation failed
     AllocationFailed,
+    /// Operation not supported
     NotSupported,
 }
 
