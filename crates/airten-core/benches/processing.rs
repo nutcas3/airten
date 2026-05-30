@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
+use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId};
 use airten_core::{AudioProcessor, ProcessorConfig, Sample};
 use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};
 
@@ -15,7 +15,7 @@ fn bench_processor(c: &mut Criterion) {
             let mut samples = vec![0.5f32; size];
             
             b.iter(|| {
-                processor.process(black_box(&mut samples)).unwrap();
+                processor.process(std::hint::black_box(&mut samples)).unwrap();
             });
         });
     }
@@ -32,7 +32,7 @@ fn bench_biquad_filter(c: &mut Criterion) {
             let mut samples = vec![0.5f32; size];
             
             b.iter(|| {
-                filter.process_block(black_box(&mut samples));
+                filter.process_block(std::hint::black_box(&mut samples));
             });
         });
     }
@@ -49,7 +49,7 @@ fn bench_compressor(c: &mut Criterion) {
             let mut samples = vec![0.5f32; size];
             
             b.iter(|| {
-                compressor.process_block(black_box(&mut samples));
+                compressor.process_block(std::hint::black_box(&mut samples));
             });
         });
     }
@@ -66,7 +66,7 @@ fn bench_noise_gate(c: &mut Criterion) {
             let mut samples = vec![0.5f32; size];
             
             b.iter(|| {
-                gate.process_block(black_box(&mut samples));
+                gate.process_block(std::hint::black_box(&mut samples));
             });
         });
     }
