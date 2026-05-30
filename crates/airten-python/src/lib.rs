@@ -4,6 +4,10 @@ use numpy::{PyArray1, PyArrayMethods, PyReadonlyArray1};
 use pyo3::prelude::*;
 #[cfg(feature = "python-bindings")]
 use pyo3::exceptions::{PyValueError, PyRuntimeError};
+#[cfg(feature = "python-bindings")]
+use pyo3::wrap_pyfunction;
+#[cfg(feature = "python-bindings")]
+use pyo3::types::PyModule;
 
 #[cfg(feature = "python-bindings")]
 use airten_core::{
@@ -468,5 +472,15 @@ pub fn calculate_rms(_samples: &[f32]) -> Result<f32, &'static str> {
 
 #[cfg(not(feature = "python-bindings"))]
 pub fn find_peak(_samples: &[f32]) -> Result<f32, &'static str> {
+    Err("Python bindings not enabled. Build with --features python-bindings")
+}
+
+#[cfg(not(feature = "python-bindings"))]
+pub fn db_to_linear(_db: f32) -> Result<f32, &'static str> {
+    Err("Python bindings not enabled. Build with --features python-bindings")
+}
+
+#[cfg(not(feature = "python-bindings"))]
+pub fn linear_to_db(_linear: f32) -> Result<f32, &'static str> {
     Err("Python bindings not enabled. Build with --features python-bindings")
 }
