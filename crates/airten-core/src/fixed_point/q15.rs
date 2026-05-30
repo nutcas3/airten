@@ -58,11 +58,13 @@ impl Q15 {
         Self(self.0.saturating_add(rhs.0))
     }
 
+    /// Saturating subtraction that clamps to valid Q15 range
     #[inline]
     pub fn saturating_sub(self, rhs: Self) -> Self {
         Self(self.0.saturating_sub(rhs.0))
     }
 
+    /// Q15 multiplication with proper scaling and saturation
     #[inline]
     pub fn mul_q15(self, rhs: Self) -> Self {
         let product = (self.0 as i32) * (rhs.0 as i32);

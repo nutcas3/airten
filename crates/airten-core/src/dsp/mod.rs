@@ -1,4 +1,8 @@
 /// Digital Signal Processing module for audio effects and processing
+
+#[cfg(not(feature = "std"))]
+use compiler_builtins::float::traits::Float;
+
 mod compressor;
 mod envelope;
 mod filter;
