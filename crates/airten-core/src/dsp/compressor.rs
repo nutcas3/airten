@@ -1,6 +1,7 @@
 use crate::Sample;
 use crate::dsp::{db_to_linear, linear_to_db, time_constant};
 
+/// Dynamic range compressor for audio processing
 pub struct Compressor {
     sample_rate: Sample,
     threshold_db: Sample,
@@ -13,6 +14,8 @@ pub struct Compressor {
 }
 
 impl Compressor {
+    /// Creates a new compressor with default settings
+    #[must_use]
     pub fn new(sample_rate: Sample) -> Self {
         let mut comp = Self {
             sample_rate,
@@ -29,26 +32,32 @@ impl Compressor {
         comp
     }
 
+    /// Sets the compression threshold in dB
     pub fn set_threshold(&mut self, threshold_db: Sample) {
         self.threshold_db = threshold_db;
     }
 
+    /// Sets the compression ratio
     pub fn set_ratio(&mut self, ratio: Sample) {
         self.ratio = ratio.max(1.0);
     }
 
+    /// Sets the attack time in milliseconds
     pub fn set_attack(&mut self, attack_ms: Sample) {
         self.attack_coeff = time_constant(attack_ms, self.sample_rate);
     }
 
+    /// Sets the release time in milliseconds
     pub fn set_release(&mut self, release_ms: Sample) {
         self.release_coeff = time_constant(release_ms, self.sample_rate);
     }
 
+    /// Sets the knee width in dB
     pub fn set_knee(&mut self, knee_db: Sample) {
         self.knee_width_db = knee_db.max(0.0);
     }
 
+    /// Sets the makeup gain in dB
     pub fn set_makeup_gain(&mut self, gain_db: Sample) {
         self.makeup_gain = db_to_linear(gain_db);
     }
@@ -75,6 +84,7 @@ impl Compressor {
         output_db - input_db
     }
 
+    /// Processes a single sample through the compressor
     #[inline]
     pub fn process(&mut self, input: Sample) -> Sample {
         let input_abs = input.abs();
@@ -95,21 +105,27 @@ impl Compressor {
         input * gain * self.makeup_gain
     }
 
+    /// Processes a block of samples in-place
     pub fn process_block(&mut self, samples: &mut [Sample]) {
         for sample in samples.iter_mut() {
             *sample = self.process(*sample);
         }
     }
 
+    /// Resets compressor state
     pub fn reset(&mut self) {
         self.envelope = 0.0;
     }
 
+    /// Gets current gain reduction in dB
+    #[must_use]
     pub fn gain_reduction_db(&self) -> Sample {
         let input_db = linear_to_db(self.envelope);
         -self.compute_gain(input_db)
     }
 
+    /// Gets current envelope level
+    #[must_use]
     pub fn envelope(&self) -> Sample {
         self.envelope
     }

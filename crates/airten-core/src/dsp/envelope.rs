@@ -1,6 +1,7 @@
 use crate::Sample;
 use crate::dsp::time_constant;
 
+/// Envelope follower for tracking signal amplitude over time
 pub struct EnvelopeFollower {
     sample_rate: Sample,
     attack_coeff: Sample,
@@ -9,6 +10,8 @@ pub struct EnvelopeFollower {
 }
 
 impl EnvelopeFollower {
+    /// Creates a new envelope follower
+    #[must_use]
     pub fn new(sample_rate: Sample) -> Self {
         let mut follower = Self {
             sample_rate,
@@ -21,14 +24,17 @@ impl EnvelopeFollower {
         follower
     }
 
+    /// Sets attack time in milliseconds
     pub fn set_attack(&mut self, attack_ms: Sample) {
         self.attack_coeff = time_constant(attack_ms, self.sample_rate);
     }
 
+    /// Sets release time in milliseconds
     pub fn set_release(&mut self, release_ms: Sample) {
         self.release_coeff = time_constant(release_ms, self.sample_rate);
     }
 
+    /// Processes a single sample
     #[inline]
     pub fn process(&mut self, input: Sample) -> Sample {
         let input_abs = input.abs();
@@ -43,6 +49,7 @@ impl EnvelopeFollower {
         self.envelope
     }
 
+    /// Processes a block of samples and returns envelope level
     pub fn process_block(&mut self, samples: &[Sample]) -> Sample {
         for &sample in samples {
             self.process(sample);
@@ -50,7 +57,8 @@ impl EnvelopeFollower {
         self.envelope
     }
 
-    #[inline]
+    /// Gets current envelope level
+    #[must_use]
     pub fn level(&self) -> Sample {
         self.envelope
     }

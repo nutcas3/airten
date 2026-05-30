@@ -1,6 +1,7 @@
 use crate::Sample;
 use crate::dsp::{db_to_linear, linear_to_db, time_constant};
 
+/// Noise gate for removing unwanted low-level signals
 pub struct NoiseGate {
     sample_rate: Sample,
     threshold_db: Sample,
@@ -16,6 +17,8 @@ pub struct NoiseGate {
 }
 
 impl NoiseGate {
+    /// Creates a new noise gate with default settings
+    #[must_use]
     pub fn new(sample_rate: Sample) -> Self {
         let mut gate = Self {
             sample_rate,
