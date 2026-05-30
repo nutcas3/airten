@@ -70,86 +70,8 @@ impl EnvelopeFollower {
     }
 }
 
-pub struct RmsEnvelopeFollower {
-    sample_rate: Sample,
-    window_size: usize,
-    buffer: [Sample; 1024],
-    write_pos: usize,
-    sum_squares: Sample,
-    attack_coeff: Sample,
-    release_coeff: Sample,
-    envelope: Sample,
-}
-
-impl RmsEnvelopeFollower {
-    pub fn new(sample_rate: Sample, window_ms: Sample) -> Self {
-        let window_size = ((window_ms * 0.001 * sample_rate) as usize).min(1024);
-
-        let mut follower = Self {
-            sample_rate,
-            window_size,
-            buffer: [0.0; 1024],
-            write_pos: 0,
-            sum_squares: 0.0,
-            attack_coeff: 0.0,
-            release_coeff: 0.0,
-            envelope: 0.0,
-        };
-        follower.set_attack(5.0);
-        follower.set_release(50.0);
-        follower
-    }
-
-    pub fn set_attack(&mut self, attack_ms: Sample) {
-        self.attack_coeff = time_constant(attack_ms, self.sample_rate);
-    }
-
-    pub fn set_release(&mut self, release_ms: Sample) {
-        self.release_coeff = time_constant(release_ms, self.sample_rate);
-    }
-
-    #[inline]
-    pub fn process(&mut self, input: Sample) -> Sample {
-        // Remove old sample from sum
-        let old_sample = self.buffer[self.write_pos];
-        self.sum_squares -= old_sample * old_sample;
-
-        // Add new sample
-        self.buffer[self.write_pos] = input;
-        self.sum_squares += input * input;
-
-        // Advance write position
-        self.write_pos = (self.write_pos + 1) % self.window_size;
-
-        // Calculate RMS
-        let rms = (self.sum_squares / self.window_size as Sample).sqrt();
-
-        // Smooth with attack/release
-        let coeff = if rms > self.envelope {
-            self.attack_coeff
-        } else {
-            self.release_coeff
-        };
-
-        self.envelope = coeff * self.envelope + (1.0 - coeff) * rms;
-        self.envelope
-    }
-
-    #[inline]
-    pub fn level(&self) -> Sample {
-        self.envelope
-    }
-
-    /// Resets the RMS envelope follower state
-    #[allow(dead_code)]
-    pub fn reset(&mut self) {
-        self.buffer = [0.0; 1024];
-        self.write_pos = 0;
-        self.sum_squares = 0.0;
-        self.envelope = 0.0;
-    }
-}
-
+/// Peak hold envelope for peak detection with hold time
+#[allow(dead_code)]
 pub struct PeakHoldEnvelope {
     sample_rate: Sample,
     hold_samples: usize,
@@ -158,6 +80,7 @@ pub struct PeakHoldEnvelope {
     hold_counter: usize,
 }
 
+#[allow(dead_code)]
 impl PeakHoldEnvelope {
     pub fn new(sample_rate: Sample) -> Self {
         let mut follower = Self {
@@ -168,7 +91,7 @@ impl PeakHoldEnvelope {
             hold_counter: 0,
         };
         follower.set_hold(100.0);
-        follower.set_release(500.0);
+        follower.set_release(100.0);
         follower
     }
 
@@ -190,7 +113,7 @@ impl PeakHoldEnvelope {
         } else if self.hold_counter > 0 {
             self.hold_counter -= 1;
         } else {
-            self.peak = self.release_coeff * self.peak;
+            self.peak *= self.release_coeff;
         }
 
         self.peak
