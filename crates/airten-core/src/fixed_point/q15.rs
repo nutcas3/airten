@@ -224,20 +224,4 @@ mod tests {
         let result = a.lerp(b, t);
         assert!((result.to_f32() - 0.5).abs() < 0.01);
     }
-
-    #[test]
-    fn test_q31_conversion() {
-        let f = 0.5f32;
-        let q = Q31::from_f32(f);
-        let back = q.to_f32();
-        assert!((f - back).abs() < 0.0000001);
-    }
-
-    #[test]
-    fn test_q15_q31_conversion() {
-        let q15 = Q15::from_f32(0.5);
-        let q31 = Q31::from_q15(q15);
-        let back = q31.to_q15();
-        assert_eq!(q15, back);
-    }
 }

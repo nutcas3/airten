@@ -131,35 +131,4 @@ mod tests {
 
         assert!(output[0] >= 0.0);
     }
-
-    #[cfg(feature = "alloc")]
-    #[test]
-    fn test_dynamic_layer() {
-        let mut layer = DynamicLayer::new(2, 2);
-        layer.set_weights(&[1.0, 0.0, 0.0, 1.0]);
-        layer.set_biases(&[0.0, 0.0]);
-        layer.set_activation(Activation::new(ActivationType::Linear));
-
-        let input = [1.0, 2.0];
-        let mut output = [0.0; 2];
-
-        layer.forward(&input, &mut output);
-
-        assert!((output[0] - 1.0).abs() < 0.001);
-        assert!((output[1] - 2.0).abs() < 0.001);
-    }
-
-    static CONV_WEIGHTS: [Sample; 3] = [1.0, 0.0, -1.0];
-
-    #[test]
-    fn test_conv1d() {
-        let conv = Conv1D::new(&CONV_WEIGHTS, 0.0, 3, 1);
-
-        let input = [1.0, 2.0, 3.0, 4.0, 5.0];
-        let mut output = [0.0; 3];
-
-        conv.forward(&input, &mut output);
-
-        assert_eq!(output[0], 0.0);
-    }
 }

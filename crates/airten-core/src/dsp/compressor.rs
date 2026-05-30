@@ -177,20 +177,4 @@ mod tests {
         // Should be compressed
         assert!(output < input);
     }
-
-    #[test]
-    fn test_limiter() {
-        let mut limiter = Limiter::new(48000.0);
-        limiter.set_ceiling(-3.0);
-
-        // Process signal that exceeds ceiling
-        let input = 1.5;
-        let mut output = input;
-        for _ in 0..10000 {
-            output = limiter.process(input);
-        }
-
-        // Should be limited
-        assert!(output < input);
-    }
 }

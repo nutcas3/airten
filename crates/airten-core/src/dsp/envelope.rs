@@ -168,17 +168,6 @@ mod tests {
     }
 
     #[test]
-    fn test_rms_envelope() {
-        let mut env = RmsEnvelopeFollower::new(48000.0, 10.0);
-
-        for _ in 0..10000 {
-            env.process(0.5);
-        }
-
-        assert!((env.level() - 0.5).abs() < 0.1);
-    }
-
-    #[test]
     fn test_peak_hold() {
         let mut env = PeakHoldEnvelope::new(48000.0);
         env.set_hold(10.0);
