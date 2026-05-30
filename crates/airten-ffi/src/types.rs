@@ -52,9 +52,4 @@ pub type AirtenProcessCallback = Option<
     ),
 >;
 
-pub type AirtenLogCallback = Option<
-    unsafe extern "C" fn(
-        level: i32,
-        message: *const c_char,
-    ),
->;
+pub type AirtenLogCallback = Option<unsafe extern "C" fn(level: i32, message: *const c_char)>;

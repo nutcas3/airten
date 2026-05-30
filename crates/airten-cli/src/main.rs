@@ -5,7 +5,7 @@ use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
-use tracing::{info, Level};
+use tracing::{Level, info};
 use tracing_subscriber::FmtSubscriber;
 
 use airten_core::{AudioProcessor, ProcessorConfig, Sample};
@@ -75,7 +75,11 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     // Setup logging
-    let level = if cli.verbose { Level::DEBUG } else { Level::INFO };
+    let level = if cli.verbose {
+        Level::DEBUG
+    } else {
+        Level::INFO
+    };
     let subscriber = FmtSubscriber::builder()
         .with_max_level(level)
         .with_target(false)
@@ -144,10 +148,7 @@ fn process_file(
 
     // Read all samples
     let samples: Vec<Sample> = match spec.sample_format {
-        hound::SampleFormat::Float => reader
-            .samples::<f32>()
-            .map(|s| s.unwrap())
-            .collect(),
+        hound::SampleFormat::Float => reader.samples::<f32>().map(|s| s.unwrap()).collect(),
         hound::SampleFormat::Int => reader
             .samples::<i16>()
             .map(|s| s.unwrap() as f32 / 32768.0)
@@ -172,7 +173,9 @@ fn process_file(
     let pb = ProgressBar::new(total_frames as u64);
     pb.set_style(
         ProgressStyle::default_bar()
-            .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})")?
+            .template(
+                "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
+            )?
             .progress_chars("#>-"),
     );
 
@@ -278,8 +281,16 @@ fn show_info(file: &PathBuf) -> Result<()> {
 
     let peak = samples.iter().map(|&x| x.abs()).fold(0.0f32, f32::max);
     let rms = (samples.iter().map(|&x| x * x).sum::<f32>() / samples.len() as f32).sqrt();
-    let peak_db = if peak > 0.0 { 20.0 * peak.log10() } else { -120.0 };
-    let rms_db = if rms > 0.0 { 20.0 * rms.log10() } else { -120.0 };
+    let peak_db = if peak > 0.0 {
+        20.0 * peak.log10()
+    } else {
+        -120.0
+    };
+    let rms_db = if rms > 0.0 {
+        20.0 * rms.log10()
+    } else {
+        -120.0
+    };
 
     println!();
     println!("{}", style("Audio Statistics").bold().underlined());
@@ -338,13 +349,13 @@ fn run_benchmark(iterations: usize, frame_size: usize) -> Result<()> {
     println!("  Frame Size:     {} samples", frame_size);
     println!("  Total Duration: {:.2}ms", duration.as_secs_f64() * 1000.0);
     println!("  Avg Latency:    {:.3}ms", latency_ms);
-    println!("  Throughput:     {:.2}M samples/sec", samples_per_sec / 1_000_000.0);
+    println!(
+        "  Throughput:     {:.2}M samples/sec",
+        samples_per_sec / 1_000_000.0
+    );
 
     let realtime_factor = samples_per_sec / 48000.0;
-    println!(
-        "  Realtime Factor: {:.1}x (at 48kHz)",
-        realtime_factor
-    );
+    println!("  Realtime Factor: {:.1}x (at 48kHz)", realtime_factor);
 
     if latency_ms < 10.0 {
         println!(

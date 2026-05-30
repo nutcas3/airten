@@ -52,7 +52,7 @@ impl Benchmarker {
 
         // Collect timings
         let mut durations = Vec::with_capacity(self.iterations);
-        
+
         for _ in 0..self.iterations {
             let start = Instant::now();
             f();
@@ -91,10 +91,7 @@ impl Benchmarker {
     }
 }
 
-pub fn benchmark_processor(
-    config: ProcessorConfig,
-    iterations: usize,
-) -> BenchmarkResult {
+pub fn benchmark_processor(config: ProcessorConfig, iterations: usize) -> BenchmarkResult {
     let mut processor = AudioProcessor::new(config);
     let mut samples: Vec<Sample> = (0..config.frame_size)
         .map(|i| (i as f32 * 0.01).sin() * 0.5)
@@ -139,7 +136,7 @@ pub fn run_latency_tests(sample_rate: u32, target_ms: f64) -> Vec<LatencyTestRes
         };
 
         let bench_result = benchmark_processor(config, 1000);
-        
+
         let processing_latency_ms = bench_result.latency_ms();
         let buffer_latency_ms = (frame_size as f64 / sample_rate as f64) * 1000.0;
         let total_latency_ms = processing_latency_ms + buffer_latency_ms;
@@ -160,10 +157,14 @@ pub fn run_latency_tests(sample_rate: u32, target_ms: f64) -> Vec<LatencyTestRes
 /// Generate a benchmark report
 pub fn generate_report(results: &[BenchmarkResult]) -> String {
     let mut report = String::new();
-    
+
     report.push_str("# AirTen Benchmark Report\n\n");
-    report.push_str("| Benchmark | Iterations | Avg (ms) | Min (ms) | Max (ms) | Throughput (M/s) |\n");
-    report.push_str("|-----------|------------|----------|----------|----------|------------------|\n");
+    report.push_str(
+        "| Benchmark | Iterations | Avg (ms) | Min (ms) | Max (ms) | Throughput (M/s) |\n",
+    );
+    report.push_str(
+        "|-----------|------------|----------|----------|----------|------------------|\n",
+    );
 
     for result in results {
         report.push_str(&format!(

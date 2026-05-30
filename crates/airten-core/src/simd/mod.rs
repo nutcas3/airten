@@ -18,7 +18,7 @@ pub fn process_gain(input: &[Sample], output: &mut [Sample], gain: Sample) {
     {
         process_gain_simd(input, output, gain);
     }
-    
+
     #[cfg(not(all(feature = "simd", any(target_arch = "x86_64", target_arch = "aarch64"))))]
     {
         process_gain_scalar(input, output, gain);
@@ -36,12 +36,12 @@ pub fn process_gain_scalar(input: &[Sample], output: &mut [Sample], gain: Sample
 #[inline]
 pub fn mix_signals(a: &[Sample], b: &[Sample], output: &mut [Sample], mix: Sample) {
     let _len = a.len().min(b.len()).min(output.len());
-    
+
     #[cfg(all(feature = "simd", any(target_arch = "x86_64", target_arch = "aarch64")))]
     {
         mix_signals_simd(a, b, output, mix);
     }
-    
+
     #[cfg(not(all(feature = "simd", any(target_arch = "x86_64", target_arch = "aarch64"))))]
     {
         let inv_mix = 1.0 - mix;
@@ -56,12 +56,12 @@ pub fn calculate_rms(samples: &[Sample]) -> Sample {
     if samples.is_empty() {
         return 0.0;
     }
-    
+
     #[cfg(all(feature = "simd", any(target_arch = "x86_64", target_arch = "aarch64")))]
     {
         calculate_rms_simd(samples)
     }
-    
+
     #[cfg(not(all(feature = "simd", any(target_arch = "x86_64", target_arch = "aarch64"))))]
     {
         let sum_sq: Sample = samples.iter().map(|&x| x * x).sum();
@@ -74,12 +74,12 @@ pub fn find_peak(samples: &[Sample]) -> Sample {
     if samples.is_empty() {
         return 0.0;
     }
-    
+
     #[cfg(all(feature = "simd", any(target_arch = "x86_64", target_arch = "aarch64")))]
     {
         find_peak_simd(samples)
     }
-    
+
     #[cfg(not(all(feature = "simd", any(target_arch = "x86_64", target_arch = "aarch64"))))]
     {
         samples.iter().map(|&x| x.abs()).fold(0.0f32, Sample::max)
@@ -94,9 +94,9 @@ mod tests {
     fn test_process_gain_scalar() {
         let input = [1.0, 2.0, 3.0, 4.0];
         let mut output = [0.0; 4];
-        
+
         process_gain_scalar(&input, &mut output, 0.5);
-        
+
         assert!((output[0] - 0.5).abs() < 0.001);
         assert!((output[1] - 1.0).abs() < 0.001);
         assert!((output[2] - 1.5).abs() < 0.001);

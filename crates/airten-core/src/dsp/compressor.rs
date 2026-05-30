@@ -78,7 +78,7 @@ impl Compressor {
     #[inline]
     pub fn process(&mut self, input: Sample) -> Sample {
         let input_abs = input.abs();
-        
+
         let coeff = if input_abs > self.envelope {
             self.attack_coeff
         } else {
@@ -130,7 +130,7 @@ impl Limiter {
         compressor.set_attack(0.1);
         compressor.set_release(50.0);
         compressor.set_knee(0.0); // Hard knee for limiting
-        
+
         Self {
             compressor,
             lookahead_buffer: [0.0; 256],
@@ -175,14 +175,14 @@ mod tests {
         comp.set_threshold(-10.0);
         comp.set_ratio(4.0);
         comp.set_knee(0.0);
-        
+
         // Process quiet signal (below threshold)
         let input = 0.1; // About -20 dB
         let mut output = input;
         for _ in 0..1000 {
             output = comp.process(input);
         }
-        
+
         // Should pass through with minimal change
         assert!((output - input).abs() < 0.05);
     }
@@ -194,14 +194,14 @@ mod tests {
         comp.set_ratio(4.0);
         comp.set_knee(0.0);
         comp.set_makeup_gain(0.0);
-        
+
         // Process loud signal (above threshold)
         let input = 1.0; // 0 dB
         let mut output = input;
         for _ in 0..10000 {
             output = comp.process(input);
         }
-        
+
         // Should be compressed
         assert!(output < input);
     }
@@ -210,14 +210,14 @@ mod tests {
     fn test_limiter() {
         let mut limiter = Limiter::new(48000.0);
         limiter.set_ceiling(-3.0);
-        
+
         // Process signal that exceeds ceiling
         let input = 1.5;
         let mut output = input;
         for _ in 0..10000 {
             output = limiter.process(input);
         }
-        
+
         // Should be limited
         assert!(output < input);
     }

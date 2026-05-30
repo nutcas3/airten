@@ -21,7 +21,7 @@ impl AudioFixture {
     pub fn sine(frequency: f32, sample_rate: u32, duration_secs: f32) -> Self {
         let num_samples = (sample_rate as f32 * duration_secs) as usize;
         let samples = crate::generate_sine(frequency, sample_rate, num_samples);
-        
+
         Self {
             sample_rate,
             samples,
@@ -32,21 +32,27 @@ impl AudioFixture {
     pub fn white_noise(sample_rate: u32, duration_secs: f32, amplitude: f32) -> Self {
         let num_samples = (sample_rate as f32 * duration_secs) as usize;
         let samples = crate::generate_white_noise(num_samples, amplitude);
-        
+
         Self {
             sample_rate,
             samples,
-            description: format!("White noise: {} seconds, amplitude {}", duration_secs, amplitude),
+            description: format!(
+                "White noise: {} seconds, amplitude {}",
+                duration_secs, amplitude
+            ),
         }
     }
 
     pub fn chirp(start_freq: f32, end_freq: f32, sample_rate: u32, duration_secs: f32) -> Self {
         let samples = crate::generate_chirp(start_freq, end_freq, sample_rate, duration_secs);
-        
+
         Self {
             sample_rate,
             samples,
-            description: format!("Chirp: {}-{} Hz, {} seconds", start_freq, end_freq, duration_secs),
+            description: format!(
+                "Chirp: {}-{} Hz, {} seconds",
+                start_freq, end_freq, duration_secs
+            ),
         }
     }
 
@@ -127,7 +133,7 @@ mod tests {
     fn test_standard_fixtures() {
         let fixtures = TestFixtures::standard();
         assert!(fixtures.len() > 0);
-        
+
         for fixture in fixtures.all() {
             assert!(!fixture.samples.is_empty());
             assert!(fixture.sample_rate > 0);

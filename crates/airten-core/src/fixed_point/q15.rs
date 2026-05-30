@@ -1,8 +1,8 @@
 use crate::Sample;
-use core::ops::{Add, Sub, Mul, Neg};
+use core::ops::{Add, Mul, Neg, Sub};
 
 /// Q15 fixed-point number format (16-bit signed integer with 15 fractional bits)
-/// 
+///
 /// Q15 format represents numbers in the range [-1.0, 1.0) using 16-bit signed integers.
 /// The value 32767 (0x7FFF) represents approximately 1.0, and -32768 (0x8000) represents -1.0.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -11,7 +11,7 @@ pub struct Q15(pub i16);
 
 impl Q15 {
     /// Scale factor for Q15 format (2^15 = 32768)
-    pub const SCALE: i32 = 32768; 
+    pub const SCALE: i32 = 32768;
     /// Maximum Q15 value (1.0)
     #[allow(dead_code)]
     pub const MAX: Q15 = Q15(i16::MAX);
@@ -86,7 +86,7 @@ impl Q15 {
     }
 
     /// Linear interpolation between self and other
-    /// 
+    ///
     /// # Arguments
     /// * `other` - End value
     /// * `t` - Interpolation parameter (0.0 = self, 1.0 = other)
@@ -99,7 +99,7 @@ impl Q15 {
     }
 
     /// Left shift by n bits (equivalent to multiplication by 2^n)
-    /// 
+    ///
     /// # Arguments
     /// * `n` - Number of bits to shift
     #[inline]
@@ -109,7 +109,7 @@ impl Q15 {
     }
 
     /// Right shift by n bits (equivalent to division by 2^n)
-    /// 
+    ///
     /// # Arguments
     /// * `n` - Number of bits to shift
     #[inline]
@@ -121,7 +121,7 @@ impl Q15 {
 
 impl Add for Q15 {
     type Output = Self;
-    
+
     #[inline]
     fn add(self, rhs: Self) -> Self {
         self.saturating_add(rhs)
@@ -130,7 +130,7 @@ impl Add for Q15 {
 
 impl Sub for Q15 {
     type Output = Self;
-    
+
     #[inline]
     fn sub(self, rhs: Self) -> Self {
         self.saturating_sub(rhs)
@@ -139,7 +139,7 @@ impl Sub for Q15 {
 
 impl Mul for Q15 {
     type Output = Self;
-    
+
     #[inline]
     fn mul(self, rhs: Self) -> Self {
         self.mul_q15(rhs)
@@ -148,7 +148,7 @@ impl Mul for Q15 {
 
 impl Neg for Q15 {
     type Output = Self;
-    
+
     #[inline]
     fn neg(self) -> Self {
         self.saturating_neg()
@@ -173,15 +173,15 @@ pub struct Q31(pub i32);
 
 impl Q31 {
     pub const SCALE: i64 = 2147483648;
-    
+
     /// Maximum Q31 value (1.0)
     #[allow(dead_code)]
     pub const MAX: Q31 = Q31(i32::MAX);
-    
+
     /// Minimum Q31 value (-1.0)
     #[allow(dead_code)]
     pub const MIN: Q31 = Q31(i32::MIN);
-    
+
     /// Zero Q31 value (0.0)
     #[allow(dead_code)]
     pub const ZERO: Q31 = Q31(0);

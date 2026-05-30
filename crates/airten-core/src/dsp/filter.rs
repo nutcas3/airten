@@ -259,32 +259,32 @@ mod tests {
         for _ in 0..100 {
             output = filter.process(1.0);
         }
-        
+
         assert!((output - 1.0).abs() < 0.01);
     }
 
     #[test]
     fn test_highpass_filter() {
         let mut filter = BiquadFilter::highpass(48000.0, 1000.0, 0.707);
-        
+
         let mut output = 0.0;
         for _ in 0..1000 {
             output = filter.process(1.0);
         }
-        
+
         assert!(output.abs() < 0.01);
     }
 
     #[test]
     fn test_filter_reset() {
         let mut filter = BiquadFilter::lowpass(48000.0, 1000.0, 0.707);
-        
+
         for _ in 0..100 {
             filter.process(1.0);
         }
-        
+
         filter.reset();
-        
+
         let output = filter.process(1.0);
         assert!((output - filter.coefficients().b0).abs() < 0.001);
     }

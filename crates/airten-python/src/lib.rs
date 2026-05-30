@@ -1,27 +1,24 @@
 #[cfg(feature = "python-bindings")]
 use numpy::{PyArray1, PyArrayMethods, PyReadonlyArray1};
 #[cfg(feature = "python-bindings")]
+use pyo3::Bound;
+#[cfg(feature = "python-bindings")]
+use pyo3::exceptions::{PyRuntimeError, PyValueError};
+#[cfg(feature = "python-bindings")]
 use pyo3::prelude::*;
-#[cfg(feature = "python-bindings")]
-use pyo3::exceptions::{PyValueError, PyRuntimeError};
-#[cfg(feature = "python-bindings")]
-use pyo3::wrap_pyfunction;
 #[cfg(feature = "python-bindings")]
 use pyo3::types::PyModule;
 #[cfg(feature = "python-bindings")]
-use pyo3::Bound;
+use pyo3::wrap_pyfunction;
 #[cfg(feature = "python-bindings")]
-use pyo3::{pyclass, pymethods, pyfunction, pymodule};
+use pyo3::{pyclass, pyfunction, pymethods, pymodule};
 
 #[cfg(feature = "python-bindings")]
-use airten_core::{
-    AudioProcessor as CoreProcessor,
-    ProcessorConfig,
-};
+use airten_core::audio::Resampler as CoreResampler;
 #[cfg(feature = "python-bindings")]
 use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};
 #[cfg(feature = "python-bindings")]
-use airten_core::audio::Resampler as CoreResampler;
+use airten_core::{AudioProcessor as CoreProcessor, ProcessorConfig};
 
 #[cfg(feature = "python-bindings")]
 #[pyclass]
@@ -68,10 +65,12 @@ impl AudioProcessor {
     ///     samples: NumPy array of float32 samples (modified in-place)
     fn process_inplace<'py>(&mut self, samples: &Bound<'py, PyArray1<f32>>) -> PyResult<()> {
         let mut samples_rw = unsafe { samples.as_array_mut() };
-        let slice = samples_rw.as_slice_mut()
+        let slice = samples_rw
+            .as_slice_mut()
             .ok_or_else(|| PyValueError::new_err("Array must be contiguous"))?;
-        
-        self.inner.process(slice)
+
+        self.inner
+            .process(slice)
             .map_err(|e| PyRuntimeError::new_err(format!("Processing error: {}", e)))
     }
 
@@ -87,14 +86,16 @@ impl AudioProcessor {
         py: Python<'py>,
         samples: PyReadonlyArray1<'py, f32>,
     ) -> PyResult<Bound<'py, PyArray1<f32>>> {
-        let input = samples.as_slice()
+        let input = samples
+            .as_slice()
             .map_err(|_| PyValueError::new_err("Array must be contiguous"))?;
-        
+
         let mut output: Vec<f32> = input.to_vec();
-        
-        self.inner.process(&mut output)
+
+        self.inner
+            .process(&mut output)
             .map_err(|e| PyRuntimeError::new_err(format!("Processing error: {}", e)))?;
-        
+
         Ok(PyArray1::from_vec(py, output))
     }
 
@@ -184,9 +185,10 @@ impl Filter {
     /// Process samples in-place
     fn process_inplace<'py>(&mut self, samples: &Bound<'py, PyArray1<f32>>) -> PyResult<()> {
         let mut samples_rw = unsafe { samples.as_array_mut() };
-        let slice = samples_rw.as_slice_mut()
+        let slice = samples_rw
+            .as_slice_mut()
             .ok_or_else(|| PyValueError::new_err("Array must be contiguous"))?;
-        
+
         self.inner.process_block(slice);
         Ok(())
     }
@@ -197,12 +199,13 @@ impl Filter {
         py: Python<'py>,
         samples: PyReadonlyArray1<'py, f32>,
     ) -> PyResult<Bound<'py, PyArray1<f32>>> {
-        let input = samples.as_slice()
+        let input = samples
+            .as_slice()
             .map_err(|_| PyValueError::new_err("Array must be contiguous"))?;
-        
+
         let mut output: Vec<f32> = input.to_vec();
         self.inner.process_block(&mut output);
-        
+
         Ok(PyArray1::from_vec(py, output))
     }
 
@@ -266,9 +269,10 @@ impl DynamicCompressor {
     /// Process samples in-place
     fn process_inplace<'py>(&mut self, samples: &Bound<'py, PyArray1<f32>>) -> PyResult<()> {
         let mut samples_rw = unsafe { samples.as_array_mut() };
-        let slice = samples_rw.as_slice_mut()
+        let slice = samples_rw
+            .as_slice_mut()
             .ok_or_else(|| PyValueError::new_err("Array must be contiguous"))?;
-        
+
         self.inner.process_block(slice);
         Ok(())
     }
@@ -331,9 +335,10 @@ impl Gate {
     /// Process samples in-place
     fn process_inplace<'py>(&mut self, samples: &Bound<'py, PyArray1<f32>>) -> PyResult<()> {
         let mut samples_rw = unsafe { samples.as_array_mut() };
-        let slice = samples_rw.as_slice_mut()
+        let slice = samples_rw
+            .as_slice_mut()
             .ok_or_else(|| PyValueError::new_err("Array must be contiguous"))?;
-        
+
         self.inner.process_block(slice);
         Ok(())
     }
@@ -384,15 +389,16 @@ impl Resampler {
         py: Python<'py>,
         samples: PyReadonlyArray1<'py, f32>,
     ) -> PyResult<Bound<'py, PyArray1<f32>>> {
-        let input = samples.as_slice()
+        let input = samples
+            .as_slice()
             .map_err(|_| PyValueError::new_err("Array must be contiguous"))?;
-        
+
         let output_size = self.inner.output_size(input.len());
         let mut output = vec![0.0f32; output_size];
-        
+
         let written = self.inner.process(input, &mut output);
         output.truncate(written);
-        
+
         Ok(PyArray1::from_vec(py, output))
     }
 
@@ -412,13 +418,14 @@ impl Resampler {
 #[cfg(feature = "python-bindings")]
 #[pyfunction]
 fn calculate_rms(samples: PyReadonlyArray1<f32>) -> PyResult<f32> {
-    let slice = samples.as_slice()
+    let slice = samples
+        .as_slice()
         .map_err(|_| PyValueError::new_err("Array must be contiguous"))?;
-    
+
     if slice.is_empty() {
         return Ok(0.0);
     }
-    
+
     let sum_sq: f32 = slice.iter().map(|&x| x * x).sum();
     Ok((sum_sq / slice.len() as f32).sqrt())
 }
@@ -427,9 +434,10 @@ fn calculate_rms(samples: PyReadonlyArray1<f32>) -> PyResult<f32> {
 #[cfg(feature = "python-bindings")]
 #[pyfunction]
 fn find_peak(samples: PyReadonlyArray1<f32>) -> PyResult<f32> {
-    let slice = samples.as_slice()
+    let slice = samples
+        .as_slice()
         .map_err(|_| PyValueError::new_err("Array must be contiguous"))?;
-    
+
     Ok(slice.iter().map(|&x| x.abs()).fold(0.0f32, f32::max))
 }
 

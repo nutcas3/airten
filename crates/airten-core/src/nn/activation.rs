@@ -1,5 +1,8 @@
 use crate::Sample;
 
+#[cfg(not(feature = "std"))]
+use compiler_builtins::float::traits::Float;
+
 /// Neural network activation function types
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActivationType {
@@ -23,7 +26,6 @@ pub enum ActivationType {
     GELU,
 }
 
-
 /// Neural network activation function with type and parameters
 pub struct Activation {
     /// Type of activation function
@@ -34,7 +36,7 @@ pub struct Activation {
 
 impl Activation {
     /// Creates a new activation with default alpha (0.01)
-    /// 
+    ///
     /// # Arguments
     /// * `activation_type` - Type of activation function
     pub fn new(activation_type: ActivationType) -> Self {
@@ -45,7 +47,7 @@ impl Activation {
     }
 
     /// Creates a LeakyReLU activation with specified alpha
-    /// 
+    ///
     /// # Arguments
     /// * `alpha` - Slope for negative values (typically 0.01)
     pub fn leaky_relu(alpha: Sample) -> Self {
@@ -56,7 +58,7 @@ impl Activation {
     }
 
     /// Creates an ELU activation with specified alpha
-    /// 
+    ///
     /// # Arguments
     /// * `alpha` - Alpha parameter for ELU (typically 1.0)
     pub fn elu(alpha: Sample) -> Self {
@@ -67,10 +69,10 @@ impl Activation {
     }
 
     /// Applies the activation function to a single value
-    /// 
+    ///
     /// # Arguments
     /// * `x` - Input value
-    /// 
+    ///
     /// # Returns
     /// Activated output value
     #[inline]
@@ -79,12 +81,20 @@ impl Activation {
             ActivationType::Linear => x,
             ActivationType::ReLU => x.max(0.0),
             ActivationType::LeakyReLU => {
-                if x > 0.0 { x } else { self.alpha * x }
+                if x > 0.0 {
+                    x
+                } else {
+                    self.alpha * x
+                }
             }
             ActivationType::Sigmoid => 1.0 / (1.0 + (-x).exp()),
             ActivationType::Tanh => x.tanh(),
             ActivationType::ELU => {
-                if x > 0.0 { x } else { self.alpha * (x.exp() - 1.0) }
+                if x > 0.0 {
+                    x
+                } else {
+                    self.alpha * (x.exp() - 1.0)
+                }
             }
             ActivationType::Softmax => x,
             ActivationType::Swish => x * (1.0 / (1.0 + (-x).exp())),
@@ -96,7 +106,7 @@ impl Activation {
     }
 
     /// Applies the activation function to a slice in-place
-    /// 
+    ///
     /// # Arguments
     /// * `data` - Mutable slice of values to activate
     pub fn apply_inplace(&self, data: &mut [Sample]) {
@@ -110,18 +120,18 @@ impl Activation {
     }
 
     /// Applies softmax activation to a slice in-place
-    /// 
+    ///
     /// # Arguments
     /// * `data` - Mutable slice of values for softmax
     fn apply_softmax(&self, data: &mut [Sample]) {
         let max = data.iter().cloned().fold(Sample::NEG_INFINITY, Sample::max);
-        
+
         let mut sum = 0.0;
         for x in data.iter_mut() {
             *x = (*x - max).exp();
             sum += *x;
         }
-        
+
         if sum > 0.0 {
             for x in data.iter_mut() {
                 *x /= sum;
@@ -130,18 +140,30 @@ impl Activation {
     }
 
     /// Computes the derivative of the activation function
-    /// 
+    ///
     /// # Arguments
     /// * `x` - Input value
-    /// 
+    ///
     /// # Returns
     /// Derivative value at x
     #[inline]
     pub fn derivative(&self, x: Sample) -> Sample {
         match self.activation_type {
             ActivationType::Linear => 1.0,
-            ActivationType::ReLU => if x > 0.0 { 1.0 } else { 0.0 },
-            ActivationType::LeakyReLU => if x > 0.0 { 1.0 } else { self.alpha },
+            ActivationType::ReLU => {
+                if x > 0.0 {
+                    1.0
+                } else {
+                    0.0
+                }
+            }
+            ActivationType::LeakyReLU => {
+                if x > 0.0 {
+                    1.0
+                } else {
+                    self.alpha
+                }
+            }
             ActivationType::Sigmoid => {
                 let s = self.apply(x);
                 s * (1.0 - s)
@@ -151,7 +173,11 @@ impl Activation {
                 1.0 - t * t
             }
             ActivationType::ELU => {
-                if x > 0.0 { 1.0 } else { self.apply(x) + self.alpha }
+                if x > 0.0 {
+                    1.0
+                } else {
+                    self.apply(x) + self.alpha
+                }
             }
             ActivationType::Softmax => 1.0,
             ActivationType::Swish => {
@@ -215,10 +241,10 @@ mod tests {
         let act = Activation::new(ActivationType::Softmax);
         let mut data = [1.0, 2.0, 3.0];
         act.apply_inplace(&mut data);
-        
+
         let sum: Sample = data.iter().sum();
         assert!((sum - 1.0).abs() < 0.001);
-        
+
         assert!(data[2] > data[1]);
         assert!(data[1] > data[0]);
     }

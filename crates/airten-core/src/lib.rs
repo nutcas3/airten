@@ -42,8 +42,8 @@ pub mod nn;
 #[cfg(feature = "simd")]
 pub mod simd;
 
-pub use audio::{AudioFrame, AudioBuffer, RingBuffer};
-pub use dsp::{BiquadFilter, Compressor, NoiseGate, EnvelopeFollower};
+pub use audio::{AudioBuffer, AudioFrame, RingBuffer};
+pub use dsp::{BiquadFilter, Compressor, EnvelopeFollower, NoiseGate};
 pub use error::{Error, Result};
 pub use fixed_point::Q15;
 
@@ -91,7 +91,7 @@ pub struct AudioProcessor {
 impl AudioProcessor {
     pub fn new(config: ProcessorConfig) -> Self {
         let sample_rate = config.sample_rate as Sample;
-        
+
         Self {
             config,
             highpass: BiquadFilter::highpass(sample_rate, 80.0, 0.707),
@@ -109,13 +109,13 @@ impl AudioProcessor {
 
         for sample in samples.iter_mut() {
             *sample = self.highpass.process(*sample);
-            
+
             *sample = self.lowpass.process(*sample);
-            
+
             if self.config.noise_suppression {
                 *sample = self.gate.process(*sample);
             }
-            
+
             if self.config.compression {
                 *sample = self.compressor.process(*sample);
             }
@@ -165,7 +165,7 @@ mod tests {
     fn test_process_samples() {
         let config = ProcessorConfig::default();
         let mut processor = AudioProcessor::new(config);
-        
+
         let mut samples = [0.5f32; 512];
         let result = processor.process(&mut samples);
         assert!(result.is_ok());
@@ -175,7 +175,7 @@ mod tests {
     fn test_buffer_too_large() {
         let config = ProcessorConfig::default();
         let mut processor = AudioProcessor::new(config);
-        
+
         let mut samples = [0.0f32; MAX_FRAME_SIZE + 1];
         let result = processor.process(&mut samples);
         assert!(matches!(result, Err(Error::BufferTooLarge)));

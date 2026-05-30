@@ -63,7 +63,7 @@ impl NoiseGate {
     #[inline]
     pub fn process(&mut self, input: Sample) -> Sample {
         let input_abs = input.abs();
-        
+
         let env_coeff = if input_abs > self.envelope {
             0.0
         } else {
@@ -149,7 +149,7 @@ mod tests {
         for _ in 0..1000 {
             gate.process(0.5);
         }
-        
+
         assert!(gate.is_open());
     }
 
@@ -158,12 +158,12 @@ mod tests {
         let mut gate = NoiseGate::new(48000.0);
         gate.set_threshold(-30.0);
         gate.set_hold(0.0);
-        
+
         for _ in 0..1000 {
             gate.process(0.5);
         }
         assert!(gate.is_open());
-        
+
         for _ in 0..10000 {
             gate.process(0.001);
         }
@@ -175,13 +175,13 @@ mod tests {
         let mut gate = NoiseGate::new(48000.0);
         gate.set_threshold(-20.0);
         gate.set_range(-60.0);
-        
+
         let input = 0.01;
         let mut output = input;
         for _ in 0..10000 {
             output = gate.process(input);
         }
-        
+
         assert!(output < input * 0.1);
     }
 }

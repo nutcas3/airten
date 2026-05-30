@@ -1,4 +1,4 @@
-use crate::{Sample, MAX_FRAME_SIZE, MAX_CHANNELS};
+use crate::{MAX_CHANNELS, MAX_FRAME_SIZE, Sample};
 
 #[repr(C)]
 #[derive(Clone)]
@@ -22,7 +22,7 @@ impl AudioFrame {
     pub fn with_config(num_samples: usize, num_channels: usize, sample_rate: u32) -> Self {
         debug_assert!(num_samples <= MAX_FRAME_SIZE);
         debug_assert!(num_channels <= MAX_CHANNELS);
-        
+
         Self {
             samples: [[0.0; MAX_FRAME_SIZE]; MAX_CHANNELS],
             num_samples: num_samples.min(MAX_FRAME_SIZE),
@@ -82,7 +82,7 @@ impl AudioFrame {
     pub fn from_interleaved(&mut self, interleaved: &[Sample]) {
         let total_samples = interleaved.len() / self.num_channels;
         self.num_samples = total_samples.min(MAX_FRAME_SIZE);
-        
+
         for (i, sample) in interleaved.iter().enumerate() {
             let channel = i % self.num_channels;
             let frame_idx = i / self.num_channels;
@@ -136,17 +136,17 @@ impl AudioFrame {
         if self.num_samples == 0 {
             return 0.0;
         }
-        
+
         let mut sum_sq = 0.0f32;
         let mut count = 0usize;
-        
+
         for ch in 0..self.num_channels {
             for &sample in &self.samples[ch][..self.num_samples] {
                 sum_sq += sample * sample;
                 count += 1;
             }
         }
-        
+
         if count > 0 {
             (sum_sq / count as Sample).sqrt()
         } else {
@@ -184,12 +184,12 @@ mod tests {
     #[test]
     fn test_channel_access() {
         let mut frame = AudioFrame::with_config(128, 2, 48000);
-        
+
         if let Some(ch) = frame.channel_mut(0) {
             ch[0] = 0.5;
             ch[1] = -0.5;
         }
-        
+
         assert_eq!(frame.channel(0).unwrap()[0], 0.5);
         assert_eq!(frame.channel(0).unwrap()[1], -0.5);
         assert!(frame.channel(2).is_none());
@@ -199,9 +199,9 @@ mod tests {
     fn test_interleaved_conversion() {
         let mut frame = AudioFrame::with_config(4, 2, 48000);
         let interleaved = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8];
-        
+
         frame.from_interleaved(&interleaved);
-        
+
         assert_eq!(frame.channel(0).unwrap()[0], 0.1);
         assert_eq!(frame.channel(1).unwrap()[0], 0.2);
         assert_eq!(frame.channel(0).unwrap()[1], 0.3);
@@ -212,9 +212,9 @@ mod tests {
     fn test_peak_and_rms() {
         let mut frame = AudioFrame::with_config(4, 1, 48000);
         frame.copy_from_slice(0, &[0.5, -1.0, 0.25, 0.75]);
-        
+
         assert!((frame.peak() - 1.0).abs() < 0.001);
-        
+
         let expected_rms = ((0.25 + 1.0 + 0.0625 + 0.5625) / 4.0f32).sqrt();
         assert!((frame.rms() - expected_rms).abs() < 0.001);
     }

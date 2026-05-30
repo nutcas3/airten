@@ -1,10 +1,13 @@
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
-use crate::{Sample, error::{Error, Result}};
+use crate::{
+    Sample,
+    error::{Error, Result},
+};
 
 #[cfg(not(feature = "alloc"))]
-use crate::{MAX_FRAME_SIZE, MAX_CHANNELS};
+use crate::{MAX_CHANNELS, MAX_FRAME_SIZE};
 
 pub struct AudioBuffer {
     #[cfg(feature = "alloc")]
@@ -25,7 +28,7 @@ impl AudioBuffer {
         if num_channels > MAX_CHANNELS || num_channels == 0 {
             return Err(Error::InvalidChannelCount);
         }
-        
+
         Ok(Self {
             data: [0.0; MAX_FRAME_SIZE * MAX_CHANNELS],
             num_samples,
@@ -39,12 +42,13 @@ impl AudioBuffer {
         if num_channels == 0 {
             return Err(Error::InvalidChannelCount);
         }
-        
+
         let size = num_samples * num_channels;
         let mut data = Vec::new();
-        data.try_reserve(size).map_err(|_| Error::AllocationFailed)?;
+        data.try_reserve(size)
+            .map_err(|_| Error::AllocationFailed)?;
         data.resize(size, 0.0);
-        
+
         Ok(Self {
             data,
             num_samples,
@@ -135,7 +139,7 @@ impl AudioBuffer {
     pub fn from_interleaved(&mut self, interleaved: &[Sample]) {
         let frames = interleaved.len() / self.num_channels;
         let frames = frames.min(self.num_samples);
-        
+
         for frame in 0..frames {
             for ch in 0..self.num_channels {
                 let src_idx = frame * self.num_channels + ch;
@@ -150,7 +154,7 @@ impl AudioBuffer {
     pub fn to_interleaved(&self, interleaved: &mut [Sample]) {
         let frames = interleaved.len() / self.num_channels;
         let frames = frames.min(self.num_samples);
-        
+
         for frame in 0..frames {
             for ch in 0..self.num_channels {
                 let src_idx = ch * self.num_samples + frame;
@@ -179,10 +183,10 @@ mod tests {
     #[test]
     fn test_channel_access() {
         let mut buffer = AudioBuffer::new(128, 2, 48000).unwrap();
-        
+
         buffer.set(0, 0, 0.5);
         buffer.set(1, 0, -0.5);
-        
+
         assert_eq!(buffer.get(0, 0), Some(0.5));
         assert_eq!(buffer.get(1, 0), Some(-0.5));
         assert_eq!(buffer.get(2, 0), None);
@@ -192,9 +196,9 @@ mod tests {
     fn test_interleaved() {
         let mut buffer = AudioBuffer::new(4, 2, 48000).unwrap();
         let interleaved = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8];
-        
+
         buffer.from_interleaved(&interleaved);
-        
+
         assert!((buffer.get(0, 0).unwrap() - 0.1).abs() < 0.001);
         assert!((buffer.get(1, 0).unwrap() - 0.2).abs() < 0.001);
         assert!((buffer.get(0, 1).unwrap() - 0.3).abs() < 0.001);

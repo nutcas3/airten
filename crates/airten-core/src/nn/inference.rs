@@ -6,7 +6,7 @@ pub const MAX_LAYERS: usize = 16;
 pub const MAX_LAYER_SIZE: usize = 512;
 
 /// Neural network inference engine for real-time audio processing
-/// 
+///
 /// Supports up to 16 layers with fixed-size buffers for no-heap operation.
 /// Uses static layer references to ensure memory safety in embedded environments.
 pub struct NeuralNetwork {
@@ -28,14 +28,14 @@ impl NeuralNetwork {
     }
 
     /// Adds a layer to the network
-    /// 
+    ///
     /// # Arguments
     /// * `layer` - Static reference to a layer
     pub fn add_layer(&mut self, layer: &'static Layer) -> Result<()> {
         if self.num_layers >= MAX_LAYERS {
             return Err(Error::BufferTooLarge);
         }
-        
+
         // Validate layer connectivity
         if self.num_layers > 0 {
             if let Some(prev) = self.layers[self.num_layers - 1] {
@@ -44,7 +44,7 @@ impl NeuralNetwork {
                 }
             }
         }
-        
+
         self.layers[self.num_layers] = Some(layer);
         self.num_layers += 1;
         Ok(())
@@ -71,7 +71,7 @@ impl NeuralNetwork {
     }
 
     /// Performs forward inference through all layers
-    /// 
+    ///
     /// # Arguments
     /// * `input` - Input samples
     /// * `output` - Output buffer (must be large enough for network output)
@@ -98,7 +98,7 @@ impl NeuralNetwork {
 
         // Multi-layer case: alternate between scratch buffers
         let mut use_a = true;
-        
+
         // First layer
         first_layer.forward(input, &mut self.scratch_a[..first_layer.output_size()]);
 
@@ -107,17 +107,11 @@ impl NeuralNetwork {
             let layer = self.layers[i].ok_or(Error::ModelNotLoaded)?;
             let in_size = layer.input_size();
             let out_size = layer.output_size();
-            
+
             if use_a {
-                layer.forward(
-                    &self.scratch_a[..in_size],
-                    &mut self.scratch_b[..out_size],
-                );
+                layer.forward(&self.scratch_a[..in_size], &mut self.scratch_b[..out_size]);
             } else {
-                layer.forward(
-                    &self.scratch_b[..in_size],
-                    &mut self.scratch_a[..out_size],
-                );
+                layer.forward(&self.scratch_b[..in_size], &mut self.scratch_a[..out_size]);
             }
             use_a = !use_a;
         }

@@ -12,25 +12,25 @@ pub use gate::NoiseGate;
 /// Mathematical constants for DSP operations
 pub mod constants {
     use crate::Sample;
-    
+
     /// Pi constant (π)
     pub const PI: Sample = core::f32::consts::PI;
-    
+
     /// 2 * Pi constant (2π)
     pub const TWO_PI: Sample = 2.0 * PI;
-    
+
     /// Natural logarithm of 2
     pub const LN_2: Sample = core::f32::consts::LN_2;
-    
+
     /// Conversion factor from decibels to linear amplitude (ln(10) / 20)
     pub const DB_TO_LINEAR: Sample = 0.115_129_25;
-    
+
     /// Conversion factor from linear amplitude to decibels (20 / ln(10))
     pub const LINEAR_TO_DB: Sample = 8.685_889_6;
-    
+
     /// Minimum decibel level (floor for calculations)
     pub const MIN_DB: Sample = -120.0;
-    
+
     /// Minimum linear amplitude (floor for calculations)
     pub const MIN_LINEAR: Sample = 1e-6;
 }

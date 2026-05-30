@@ -3,15 +3,15 @@
 
 use std::slice;
 
-use airten_core::{AudioProcessor, ProcessorConfig};
 use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};
+use airten_core::{AudioProcessor, ProcessorConfig};
 
-mod types;
 mod processor;
+mod types;
 mod utils;
 
-pub use types::*;
 pub use processor::*;
+pub use types::*;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -357,11 +357,11 @@ mod tests {
             let config = AirtenConfig::default();
             let processor = airten_processor_new(&config);
             assert!(!processor.is_null());
-            
+
             let mut samples = [0.5f32; 512];
             let result = airten_process(processor, samples.as_mut_ptr(), 512);
             assert_eq!(result, AirtenError::Ok);
-            
+
             airten_processor_free(processor);
         }
     }
@@ -369,19 +369,13 @@ mod tests {
     #[test]
     fn test_filter_lifecycle() {
         unsafe {
-            let filter = airten_filter_new(
-                AirtenFilterType::LowPass,
-                48000.0,
-                1000.0,
-                0.707,
-                0.0,
-            );
+            let filter = airten_filter_new(AirtenFilterType::LowPass, 48000.0, 1000.0, 0.707, 0.0);
             assert!(!filter.is_null());
-            
+
             let mut samples = [0.5f32; 256];
             let result = airten_filter_process(filter, samples.as_mut_ptr(), 256);
             assert_eq!(result, AirtenError::Ok);
-            
+
             airten_filter_free(filter);
         }
     }

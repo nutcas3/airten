@@ -1,7 +1,12 @@
 use crate::Sample;
 
 // Generate a sine wave with specified parameters
-pub fn sine_wave(frequency: f32, sample_rate: u32, num_samples: usize, amplitude: f32) -> Vec<Sample> {
+pub fn sine_wave(
+    frequency: f32,
+    sample_rate: u32,
+    num_samples: usize,
+    amplitude: f32,
+) -> Vec<Sample> {
     let omega = 2.0 * std::f32::consts::PI * frequency / sample_rate as f32;
     (0..num_samples)
         .map(|i| (omega * i as f32).sin() * amplitude)
@@ -9,7 +14,12 @@ pub fn sine_wave(frequency: f32, sample_rate: u32, num_samples: usize, amplitude
 }
 
 /// Generate a square wave
-pub fn square_wave(frequency: f32, sample_rate: u32, num_samples: usize, amplitude: f32) -> Vec<Sample> {
+pub fn square_wave(
+    frequency: f32,
+    sample_rate: u32,
+    num_samples: usize,
+    amplitude: f32,
+) -> Vec<Sample> {
     let period = sample_rate as f32 / frequency;
     (0..num_samples)
         .map(|i| {
@@ -23,7 +33,12 @@ pub fn square_wave(frequency: f32, sample_rate: u32, num_samples: usize, amplitu
 }
 
 /// Generate a sawtooth wave
-pub fn sawtooth_wave(frequency: f32, sample_rate: u32, num_samples: usize, amplitude: f32) -> Vec<Sample> {
+pub fn sawtooth_wave(
+    frequency: f32,
+    sample_rate: u32,
+    num_samples: usize,
+    amplitude: f32,
+) -> Vec<Sample> {
     let period = sample_rate as f32 / frequency;
     (0..num_samples)
         .map(|i| {
@@ -34,7 +49,12 @@ pub fn sawtooth_wave(frequency: f32, sample_rate: u32, num_samples: usize, ampli
 }
 
 /// Generate a triangle wave
-pub fn triangle_wave(frequency: f32, sample_rate: u32, num_samples: usize, amplitude: f32) -> Vec<Sample> {
+pub fn triangle_wave(
+    frequency: f32,
+    sample_rate: u32,
+    num_samples: usize,
+    amplitude: f32,
+) -> Vec<Sample> {
     let period = sample_rate as f32 / frequency;
     (0..num_samples)
         .map(|i| {
@@ -54,7 +74,7 @@ pub fn pink_noise(num_samples: usize, amplitude: f32) -> Vec<Sample> {
     // Simple pink noise approximation using multiple octaves
     let mut samples = vec![0.0; num_samples];
     let mut seed = 12345u32;
-    
+
     for octave in 0..5 {
         let freq = 1 << octave;
         for i in 0..num_samples {
@@ -65,6 +85,6 @@ pub fn pink_noise(num_samples: usize, amplitude: f32) -> Vec<Sample> {
             }
         }
     }
-    
+
     samples
 }

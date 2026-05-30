@@ -1,7 +1,7 @@
 #![cfg(all(feature = "simd", target_arch = "x86_64"))]
 
-use core::simd::{f32x8, SimdFloat, StdFloat, Simd};
 use crate::Sample;
+use core::simd::{Simd, SimdFloat, StdFloat, f32x8};
 
 const SIMD_WIDTH: usize = 8;
 
@@ -26,7 +26,7 @@ pub fn process_gain_simd(input: &[Sample], output: &mut [Sample], gain: Sample) 
 pub fn mix_signals_simd(a: &[Sample], b: &[Sample], output: &mut [Sample], mix: Sample) {
     let len = a.len().min(b.len()).min(output.len());
     let simd_len = len - (len % SIMD_WIDTH);
-    
+
     let mix_vec = f32x8::splat(mix);
     let inv_mix_vec = f32x8::splat(1.0 - mix);
 
@@ -104,7 +104,8 @@ pub fn soft_clip_simd(samples: &mut [Sample]) {
         let chunk = f32x8::from_slice(&samples[i..]);
         // Approximate tanh using rational approximation
         let x2 = chunk * chunk;
-        let result = chunk * (f32x8::splat(27.0) + x2) / (f32x8::splat(27.0) + x2 * f32x8::splat(9.0));
+        let result =
+            chunk * (f32x8::splat(27.0) + x2) / (f32x8::splat(27.0) + x2 * f32x8::splat(9.0));
         result.copy_to_slice(&mut samples[i..]);
     }
 
@@ -158,9 +159,9 @@ mod tests {
     fn test_simd_gain() {
         let input: [Sample; 16] = [1.0; 16];
         let mut output = [0.0; 16];
-        
+
         process_gain_simd(&input, &mut output, 0.5);
-        
+
         for &o in &output {
             assert!((o - 0.5).abs() < 0.001);
         }
@@ -186,9 +187,9 @@ mod tests {
         let a = [1.0f32; 16];
         let b = [0.0f32; 16];
         let mut output = [0.0; 16];
-        
+
         mix_signals_simd(&a, &b, &mut output, 0.5);
-        
+
         for &o in &output {
             assert!((o - 0.5).abs() < 0.001);
         }

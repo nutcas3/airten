@@ -2,7 +2,7 @@ use crate::Sample;
 use crate::nn::activation::{Activation, ActivationType};
 
 /// Neural network layer with weights, biases, and activation function
-/// 
+///
 /// Uses static references to weights and biases for no-heap operation.
 pub struct Layer {
     weights: &'static [Sample],
@@ -14,7 +14,7 @@ pub struct Layer {
 
 impl Layer {
     /// Creates a new layer with the given weights, biases, and sizes
-    /// 
+    ///
     /// # Arguments
     /// * `weights` - Static reference to weight matrix
     /// * `biases` - Static reference to bias vector
@@ -57,7 +57,7 @@ impl Layer {
     }
 
     /// Performs forward pass through this layer with activation
-    /// 
+    ///
     /// # Arguments
     /// * `input` - Input samples
     /// * `output` - Output buffer (must be at least output_size long)
@@ -68,17 +68,17 @@ impl Layer {
         for i in 0..self.output_size {
             let mut sum = self.biases[i];
             let weight_offset = i * self.input_size;
-            
+
             for j in 0..self.input_size {
                 sum += input[j] * self.weights[weight_offset + j];
             }
-            
+
             output[i] = self.activation.apply(sum);
         }
     }
 
     /// Performs linear forward pass (matrix multiplication + bias) without activation
-    /// 
+    ///
     /// # Arguments
     /// * `input` - Input samples
     /// * `output` - Output buffer (must be at least output_size long)
@@ -89,11 +89,11 @@ impl Layer {
         for i in 0..self.output_size {
             let mut sum = self.biases[i];
             let weight_offset = i * self.input_size;
-            
+
             for j in 0..self.input_size {
                 sum += input[j] * self.weights[weight_offset + j];
             }
-            
+
             output[i] = sum;
         }
     }
@@ -155,11 +155,11 @@ impl DynamicLayer {
         for i in 0..self.output_size {
             let mut sum = self.biases[i];
             let weight_offset = i * self.input_size;
-            
+
             for j in 0..self.input_size {
                 sum += input[j] * self.weights[weight_offset + j];
             }
-            
+
             output[i] = self.activation.apply(sum);
         }
     }
@@ -168,7 +168,7 @@ impl DynamicLayer {
     #[allow(dead_code)]
     pub fn init_xavier(&mut self) {
         let scale = (2.0 / (self.input_size + self.output_size) as Sample).sqrt();
-        
+
         let mut seed: u32 = 12345;
         for w in self.weights.iter_mut() {
             seed = seed.wrapping_mul(1103515245).wrapping_add(12345);
@@ -216,11 +216,11 @@ impl Conv1D {
         for i in 0..out_len {
             let start = i * self.stride;
             let mut sum = self.bias;
-            
+
             for k in 0..self.kernel_size {
                 sum += input[start + k] * self.weights[k];
             }
-            
+
             output[i] = self.activation.apply(sum);
         }
     }
@@ -237,12 +237,12 @@ mod tests {
     fn test_layer_forward() {
         let layer = Layer::new(&TEST_WEIGHTS, &TEST_BIASES, 3, 2)
             .with_activation(Activation::new(ActivationType::Linear));
-        
+
         let input = [1.0, 2.0, 3.0];
         let mut output = [0.0; 2];
-        
+
         layer.forward(&input, &mut output);
-        
+
         assert!((output[0] - 1.0).abs() < 0.001);
         assert!((output[1] - 3.6).abs() < 0.001);
     }
@@ -250,12 +250,12 @@ mod tests {
     #[test]
     fn test_layer_with_relu() {
         let layer = Layer::new(&TEST_WEIGHTS, &TEST_BIASES, 3, 2);
-        
+
         let input = [-1.0, -2.0, -3.0];
         let mut output = [0.0; 2];
-        
+
         layer.forward(&input, &mut output);
-        
+
         assert!(output[0] >= 0.0);
     }
 
@@ -266,12 +266,12 @@ mod tests {
         layer.set_weights(&[1.0, 0.0, 0.0, 1.0]);
         layer.set_biases(&[0.0, 0.0]);
         layer.set_activation(Activation::new(ActivationType::Linear));
-        
+
         let input = [1.0, 2.0];
         let mut output = [0.0; 2];
-        
+
         layer.forward(&input, &mut output);
-        
+
         assert!((output[0] - 1.0).abs() < 0.001);
         assert!((output[1] - 2.0).abs() < 0.001);
     }
@@ -281,12 +281,12 @@ mod tests {
     #[test]
     fn test_conv1d() {
         let conv = Conv1D::new(&CONV_WEIGHTS, 0.0, 3, 1);
-        
+
         let input = [1.0, 2.0, 3.0, 4.0, 5.0];
         let mut output = [0.0; 3];
-        
+
         conv.forward(&input, &mut output);
-        
+
         assert_eq!(output[0], 0.0);
     }
 }
