@@ -7,28 +7,47 @@ pub struct Resampler {
 }
 
 impl Resampler {
+    /// Creates a new resampler with the given input and output sample rates
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn new(input_rate: u32, output_rate: u32) -> Self {
         Self {
-            ratio: f64::from(input_rate) / f64::from(output_rate) as Sample,
+            // Casting from f64 to f32 is acceptable for audio ratio calculations
+            ratio: (f64::from(input_rate) / f64::from(output_rate)) as Sample,
             phase: 0.0,
             last_sample: 0.0,
         }
     }
 
+    /// Returns the resampling ratio
     #[inline]
+    #[must_use]
     pub fn ratio(&self) -> Sample {
         self.ratio
     }
 
+    /// Returns the output size for a given input size
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::cast_sign_loss)]
     pub fn output_size(&self, input_size: usize) -> usize {
-        ((input_size as f64) / self.ratio).ceil() as usize
+        // Casting from f64 to usize is acceptable for size calculations
+        ((input_size as f64) / f64::from(self.ratio)).ceil() as usize
     }
 
+    /// Returns the input size for a given output size
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::cast_sign_loss)]
     pub fn input_size(&self, output_size: usize) -> usize {
-        ((output_size as f64) * self.ratio).ceil() as usize
+        // Casting from f64 to usize is acceptable for size calculations
+        ((output_size as f64) * f64::from(self.ratio)).ceil() as usize
     }
 
     pub fn process(&mut self, input: &[Sample], output: &mut [Sample]) -> usize {
+        #[allow(clippy::cast_precision_loss)]
+        #[allow(clippy::cast_possible_truncation)]
+        #[allow(clippy::cast_sign_loss)]
         if input.is_empty() {
             return 0;
         }
@@ -36,12 +55,15 @@ impl Resampler {
         let mut out_idx = 0;
 
         while out_idx < output.len() {
+            #[allow(clippy::cast_precision_loss)]
+            #[allow(clippy::cast_possible_truncation)]
             let idx = self.phase as usize;
 
             if idx >= input.len() {
                 break;
             }
 
+            #[allow(clippy::cast_precision_loss)]
             let frac = self.phase - idx as Sample;
 
             let current = input[idx];

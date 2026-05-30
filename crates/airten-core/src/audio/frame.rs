@@ -141,6 +141,8 @@ impl AudioFrame {
         }
     }
 
+    /// Returns the peak amplitude of all samples in the frame
+    #[must_use]
     pub fn peak(&self) -> Sample {
         let mut peak = 0.0f32;
         for ch in 0..self.num_channels {
@@ -154,6 +156,9 @@ impl AudioFrame {
         peak
     }
 
+    /// Returns the RMS (root mean square) level of all samples in the frame
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn rms(&self) -> Sample {
         if self.num_samples == 0 {
             return 0.0;
@@ -170,7 +175,8 @@ impl AudioFrame {
         }
 
         if count > 0 {
-            (sum_sq as f64 / count as f64).sqrt() as Sample
+            // Casting from f64 to f32 is acceptable for audio RMS calculations
+            (f64::from(sum_sq) / count as f64).sqrt() as Sample
         } else {
             0.0
         }
@@ -212,8 +218,8 @@ mod tests {
             ch[1] = -0.5;
         }
 
-        assert_eq!(frame.channel(0).unwrap()[0], 0.5);
-        assert_eq!(frame.channel(0).unwrap()[1], -0.5);
+        assert!((frame.channel(0).unwrap()[0] - 0.5).abs() < f32::EPSILON);
+        assert!((frame.channel(0).unwrap()[1] - (-0.5)).abs() < f32::EPSILON);
         assert!(frame.channel(2).is_none());
     }
 
@@ -224,10 +230,10 @@ mod tests {
 
         frame.from_interleaved(&interleaved);
 
-        assert_eq!(frame.channel(0).unwrap()[0], 0.1);
-        assert_eq!(frame.channel(1).unwrap()[0], 0.2);
-        assert_eq!(frame.channel(0).unwrap()[1], 0.3);
-        assert_eq!(frame.channel(1).unwrap()[1], 0.4);
+        assert!((frame.channel(0).unwrap()[0] - 0.1).abs() < f32::EPSILON);
+        assert!((frame.channel(1).unwrap()[0] - 0.2).abs() < f32::EPSILON);
+        assert!((frame.channel(0).unwrap()[1] - 0.3).abs() < f32::EPSILON);
+        assert!((frame.channel(1).unwrap()[1] - 0.4).abs() < f32::EPSILON);
     }
 
     #[test]
