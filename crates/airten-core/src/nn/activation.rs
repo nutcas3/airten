@@ -87,20 +87,62 @@ impl Activation {
                     self.alpha * x
                 }
             }
-            ActivationType::Sigmoid => 1.0 / (1.0 + (-x).exp()),
-            ActivationType::Tanh => x.tanh(),
+            ActivationType::Sigmoid => {
+                #[cfg(feature = "std")]
+                {
+                    1.0 / (1.0 + (-x).exp())
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    1.0 / (1.0 + Float::exp(-x))
+                }
+            }
+            ActivationType::Tanh => {
+                #[cfg(feature = "std")]
+                {
+                    x.tanh()
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    Float::tanh(x)
+                }
+            }
             ActivationType::ELU => {
                 if x > 0.0 {
                     x
                 } else {
-                    self.alpha * (x.exp() - 1.0)
+                    #[cfg(feature = "std")]
+                    {
+                        self.alpha * (x.exp() - 1.0)
+                    }
+                    #[cfg(not(feature = "std"))]
+                    {
+                        self.alpha * (Float::exp(x) - 1.0)
+                    }
                 }
             }
             ActivationType::Softmax => x,
-            ActivationType::Swish => x * (1.0 / (1.0 + (-x).exp())),
+            ActivationType::Swish => {
+                #[cfg(feature = "std")]
+                {
+                    x * (1.0 / (1.0 + (-x).exp()))
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    x * (1.0 / (1.0 + Float::exp(-x)))
+                }
+            }
             ActivationType::GELU => {
-                let sqrt_2_pi = 0.797_884_56;
-                0.5 * x * (1.0 + (sqrt_2_pi * (x + 0.044715 * x * x * x)).tanh())
+                let sqrt_2_pi = 0.797_884_6;
+                let inner = sqrt_2_pi * (x + 0.044715 * x * x * x);
+                #[cfg(feature = "std")]
+                {
+                    0.5 * x * (1.0 + inner.tanh())
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    0.5 * x * (1.0 + Float::tanh(inner))
+                }
             }
         }
     }
@@ -124,11 +166,18 @@ impl Activation {
     /// # Arguments
     /// * `data` - Mutable slice of values for softmax
     fn apply_softmax(&self, data: &mut [Sample]) {
-        let max = data.iter().cloned().fold(Sample::NEG_INFINITY, Sample::max);
+        let max = data.iter().copied().fold(Sample::NEG_INFINITY, Sample::max);
 
         let mut sum = 0.0;
         for x in data.iter_mut() {
-            *x = (*x - max).exp();
+            #[cfg(feature = "std")]
+            {
+                *x = (*x - max).exp();
+            }
+            #[cfg(not(feature = "std"))]
+            {
+                *x = Float::exp(*x - max);
+            }
             sum += *x;
         }
 
@@ -169,8 +218,16 @@ impl Activation {
                 s * (1.0 - s)
             }
             ActivationType::Tanh => {
-                let t = x.tanh();
-                1.0 - t * t
+                #[cfg(feature = "std")]
+                {
+                    let t = x.tanh();
+                    1.0 - t * t
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    let t = Float::tanh(x);
+                    1.0 - t * t
+                }
             }
             ActivationType::ELU => {
                 if x > 0.0 {
@@ -181,15 +238,32 @@ impl Activation {
             }
             ActivationType::Softmax => 1.0,
             ActivationType::Swish => {
-                let s = 1.0 / (1.0 + (-x).exp());
-                s + x * s * (1.0 - s)
+                #[cfg(feature = "std")]
+                {
+                    let s = 1.0 / (1.0 + (-x).exp());
+                    s + x * s * (1.0 - s)
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    let s = 1.0 / (1.0 + Float::exp(-x));
+                    s + x * s * (1.0 - s)
+                }
             }
             ActivationType::GELU => {
-                let sqrt_2_pi = 0.797_884_56;
+                let sqrt_2_pi = 0.797_884_6;
                 let inner = sqrt_2_pi * (x + 0.044715 * x * x * x);
-                let tanh_inner = inner.tanh();
-                let sech2 = 1.0 - tanh_inner * tanh_inner;
-                0.5 * (1.0 + tanh_inner) + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134145 * x * x)
+                #[cfg(feature = "std")]
+                {
+                    let tanh_inner = inner.tanh();
+                    let sech2 = 1.0 - tanh_inner * tanh_inner;
+                    0.5 * (1.0 + tanh_inner) + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134145 * x * x)
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    let tanh_inner = Float::tanh(inner);
+                    let sech2 = 1.0 - tanh_inner * tanh_inner;
+                    0.5 * (1.0 + tanh_inner) + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134145 * x * x)
+                }
             }
         }
     }
