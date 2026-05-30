@@ -93,6 +93,7 @@ impl Resampler {
         self.last_sample = 0.0;
     }
 
+    #[allow(clippy::cast_precision_loss)]
     pub fn set_ratio(&mut self, input_rate: u32, output_rate: u32) {
         self.ratio = input_rate as Sample / output_rate as Sample;
     }

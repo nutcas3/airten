@@ -109,6 +109,7 @@ pub struct AudioProcessor {
 impl AudioProcessor {
     /// Creates a new audio processor with the given configuration
     #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn new(config: ProcessorConfig) -> Self {
         let sample_rate = config.sample_rate as Sample;
 
