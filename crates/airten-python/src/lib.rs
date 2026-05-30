@@ -8,6 +8,10 @@ use pyo3::exceptions::{PyValueError, PyRuntimeError};
 use pyo3::wrap_pyfunction;
 #[cfg(feature = "python-bindings")]
 use pyo3::types::PyModule;
+#[cfg(feature = "python-bindings")]
+use pyo3::Bound;
+#[cfg(feature = "python-bindings")]
+use pyo3::{pyclass, pymethods, pyfunction, pymodule};
 
 #[cfg(feature = "python-bindings")]
 use airten_core::{
