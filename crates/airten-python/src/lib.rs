@@ -40,7 +40,7 @@ impl AudioProcessor {
         channels: usize,
         noise_suppression: bool,
         compression: bool,
-    ) -> Self {
+    ) -> PyResult<Self> {
         let config = ProcessorConfig {
             sample_rate,
             frame_size,
@@ -49,9 +49,9 @@ impl AudioProcessor {
             compression,
             target_latency_ms: 10.0,
         };
-        Self {
+        Ok(Self {
             inner: CoreProcessor::new(config),
-        }
+        })
     }
 
     /// Process audio samples in-place
