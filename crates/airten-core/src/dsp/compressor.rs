@@ -143,24 +143,6 @@ impl Limiter {
         self.compressor.set_threshold(ceiling_db);
     }
 
-    /// Sets the release time constant
-    /// 
-    /// # Arguments
-    /// * `release_ms` - Release time in milliseconds
-    #[allow(dead_code)]
-    pub fn set_release(&mut self, release_ms: Sample) {
-        self.compressor.set_release(release_ms);
-    }
-
-    /// Sets the lookahead buffer size
-    /// 
-    /// # Arguments
-    /// * `samples` - Number of samples to lookahead (max 256)
-    #[allow(dead_code)]
-    pub fn set_lookahead(&mut self, samples: usize) {
-        self.lookahead_samples = samples.min(256);
-    }
-
     pub fn process(&mut self, input: Sample) -> Sample {
         if self.lookahead_samples == 0 {
             return self.compressor.process(input);
@@ -174,14 +156,6 @@ impl Limiter {
 
         // Process with lookahead
         self.compressor.process(delayed)
-    }
-
-    /// Resets the limiter state
-    #[allow(dead_code)]
-    pub fn reset(&mut self) {
-        self.compressor.reset();
-        self.lookahead_buffer = [0.0; 256];
-        self.lookahead_pos = 0;
     }
 }
 

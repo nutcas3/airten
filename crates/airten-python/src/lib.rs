@@ -5,11 +5,14 @@ use pyo3::prelude::*;
 #[cfg(feature = "python-bindings")]
 use pyo3::exceptions::{PyValueError, PyRuntimeError};
 
+#[cfg(feature = "python-bindings")]
 use airten_core::{
     AudioProcessor as CoreProcessor,
     ProcessorConfig,
 };
+#[cfg(feature = "python-bindings")]
 use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};
+#[cfg(feature = "python-bindings")]
 use airten_core::audio::Resampler as CoreResampler;
 
 #[cfg(feature = "python-bindings")]

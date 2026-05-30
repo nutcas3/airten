@@ -15,8 +15,9 @@ crate-type = ["cdylib"]
 
 [features]
 default = []
+python-bindings = []
 
 [dependencies]
 airten-core = { workspace = true, features = ["std"] }
-pyo3 = { workspace = true }
-numpy = { workspace = true }
+pyo3 = { workspace = true, optional = true }
+numpy = { workspace = true, optional = true }
