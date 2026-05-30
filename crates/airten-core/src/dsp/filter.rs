@@ -1,24 +1,39 @@
 use crate::Sample;
 use crate::dsp::constants::TWO_PI;
 
+/// Types of biquad filters
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FilterType {
+    /// Low-pass filter (attenuates frequencies above cutoff)
     LowPass,
+    /// High-pass filter (attenuates frequencies below cutoff)
     HighPass,
+    /// Band-pass filter (passes frequencies within a band)
     BandPass,
+    /// Notch filter (attenuates frequencies within a narrow band)
     Notch,
+    /// All-pass filter (passes all frequencies with phase shift)
     AllPass,
+    /// Peaking filter (boosts or cuts frequencies within a band)
     Peaking,
+    /// Low-shelf filter (boosts or cuts low frequencies)
     LowShelf,
+    /// High-shelf filter (boosts or cuts high frequencies)
     HighShelf,
 }
 
+/// Biquad filter coefficients in direct form I
 #[derive(Debug, Clone, Copy)]
 pub struct FilterCoefficients {
+    /// Feed-forward coefficient for current input
     pub b0: Sample,
+    /// Feed-forward coefficient for previous input
     pub b1: Sample,
+    /// Feed-forward coefficient for second previous input
     pub b2: Sample,
+    /// Feed-back coefficient for previous output
     pub a1: Sample,
+    /// Feed-back coefficient for second previous output
     pub a2: Sample,
 }
 
@@ -34,6 +49,7 @@ impl Default for FilterCoefficients {
     }
 }
 
+/// Biquad filter implementation with direct form I processing
 #[derive(Clone, Copy)]
 pub struct BiquadFilter {
     coeffs: FilterCoefficients,
@@ -42,6 +58,8 @@ pub struct BiquadFilter {
 }
 
 impl BiquadFilter {
+    /// Creates a new biquad filter with the given coefficients
+    #[must_use]
     pub fn new(coeffs: FilterCoefficients) -> Self {
         Self {
             coeffs,
@@ -50,10 +68,14 @@ impl BiquadFilter {
         }
     }
 
+    /// Creates a bypass filter (no processing)
+    #[must_use]
     pub fn bypass() -> Self {
         Self::new(FilterCoefficients::default())
     }
 
+    /// Creates a low-pass filter
+    #[must_use]
     pub fn lowpass(sample_rate: Sample, cutoff: Sample, q: Sample) -> Self {
         let omega = TWO_PI * cutoff / sample_rate;
         let sin_omega = omega.sin();
@@ -76,6 +98,8 @@ impl BiquadFilter {
         })
     }
 
+    /// Creates a high-pass filter
+    #[must_use]
     pub fn highpass(sample_rate: Sample, cutoff: Sample, q: Sample) -> Self {
         let omega = TWO_PI * cutoff / sample_rate;
         let sin_omega = omega.sin();
@@ -98,6 +122,8 @@ impl BiquadFilter {
         })
     }
 
+    /// Creates a band-pass filter
+    #[must_use]
     pub fn bandpass(sample_rate: Sample, center: Sample, q: Sample) -> Self {
         let omega = TWO_PI * center / sample_rate;
         let sin_omega = omega.sin();
@@ -120,6 +146,8 @@ impl BiquadFilter {
         })
     }
 
+    /// Creates a notch filter
+    #[must_use]
     pub fn notch(sample_rate: Sample, center: Sample, q: Sample) -> Self {
         let omega = TWO_PI * center / sample_rate;
         let sin_omega = omega.sin();
@@ -142,6 +170,8 @@ impl BiquadFilter {
         })
     }
 
+    /// Creates a peaking filter
+    #[must_use]
     pub fn peaking(sample_rate: Sample, center: Sample, q: Sample, gain_db: Sample) -> Self {
         let a = 10.0_f32.powf(gain_db / 40.0);
         let omega = TWO_PI * center / sample_rate;
@@ -165,6 +195,8 @@ impl BiquadFilter {
         })
     }
 
+    /// Creates a low-shelf filter
+    #[must_use]
     pub fn low_shelf(sample_rate: Sample, cutoff: Sample, gain_db: Sample) -> Self {
         let a = 10.0_f32.powf(gain_db / 40.0);
         let omega = TWO_PI * cutoff / sample_rate;
@@ -189,6 +221,8 @@ impl BiquadFilter {
         })
     }
 
+    /// Creates a high-shelf filter
+    #[must_use]
     pub fn high_shelf(sample_rate: Sample, cutoff: Sample, gain_db: Sample) -> Self {
         let a = 10.0_f32.powf(gain_db / 40.0);
         let omega = TWO_PI * cutoff / sample_rate;
@@ -213,6 +247,7 @@ impl BiquadFilter {
         })
     }
 
+    /// Processes a single sample through the filter
     #[inline]
     pub fn process(&mut self, input: Sample) -> Sample {
         let output = self.coeffs.b0 * input + self.z1;
@@ -221,21 +256,26 @@ impl BiquadFilter {
         output
     }
 
+    /// Processes a block of samples in-place
     pub fn process_block(&mut self, samples: &mut [Sample]) {
         for sample in samples.iter_mut() {
             *sample = self.process(*sample);
         }
     }
 
+    /// Resets filter state (clears delay lines)
     pub fn reset(&mut self) {
         self.z1 = 0.0;
         self.z2 = 0.0;
     }
 
+    /// Gets the current filter coefficients
+    #[must_use]
     pub fn coefficients(&self) -> &FilterCoefficients {
         &self.coeffs
     }
 
+    /// Sets new filter coefficients
     pub fn set_coefficients(&mut self, coeffs: FilterCoefficients) {
         self.coeffs = coeffs;
     }

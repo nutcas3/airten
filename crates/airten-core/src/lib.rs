@@ -34,12 +34,18 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+/// Audio processing module with buffers, frames, and resampling
 pub mod audio;
+/// Digital Signal Processing module with filters, compressors, and gates
 pub mod dsp;
+/// Error types and result handling
 pub mod error;
+/// Fixed-point arithmetic for embedded systems
 pub mod fixed_point;
+/// Neural network inference and activation functions
 pub mod nn;
 #[cfg(feature = "simd")]
+/// SIMD-accelerated operations
 pub mod simd;
 
 pub use audio::{AudioBuffer, AudioFrame, RingBuffer};
@@ -47,22 +53,33 @@ pub use dsp::{BiquadFilter, Compressor, EnvelopeFollower, NoiseGate};
 pub use error::{Error, Result};
 pub use fixed_point::Q15;
 
+/// Sample type for audio processing (32-bit float)
 pub type Sample = f32;
 
+/// Maximum supported frame size for audio processing
 pub const MAX_FRAME_SIZE: usize = 4096;
 
+/// Maximum supported number of audio channels
 pub const MAX_CHANNELS: usize = 16;
 
+/// Default sample rate (48 kHz)
 pub const DEFAULT_SAMPLE_RATE: u32 = 48000;
 
+/// Configuration for audio processor
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ProcessorConfig {
+    /// Audio sample rate in Hz
     pub sample_rate: u32,
+    /// Frame size for processing (samples per frame)
     pub frame_size: usize,
+    /// Number of audio channels
     pub num_channels: usize,
+    /// Enable neural network noise suppression
     pub noise_suppression: bool,
+    /// Enable dynamic range compression
     pub compression: bool,
+    /// Target latency in milliseconds
     pub target_latency_ms: f32,
 }
 
@@ -79,6 +96,7 @@ impl Default for ProcessorConfig {
     }
 }
 
+/// Real-time audio processor with neural network noise suppression
 pub struct AudioProcessor {
     config: ProcessorConfig,
     highpass: BiquadFilter,
@@ -89,6 +107,8 @@ pub struct AudioProcessor {
 }
 
 impl AudioProcessor {
+    /// Creates a new audio processor with the given configuration
+    #[must_use]
     pub fn new(config: ProcessorConfig) -> Self {
         let sample_rate = config.sample_rate as Sample;
 
@@ -102,6 +122,10 @@ impl AudioProcessor {
         }
     }
 
+    /// Processes audio samples through the DSP chain
+    ///
+    /// # Errors
+    /// Returns `Error::BufferTooLarge` if input buffer exceeds `MAX_FRAME_SIZE`
     pub fn process(&mut self, samples: &mut [Sample]) -> Result<()> {
         if samples.len() > MAX_FRAME_SIZE {
             return Err(Error::BufferTooLarge);
@@ -124,6 +148,10 @@ impl AudioProcessor {
         Ok(())
     }
 
+    /// Processes an audio frame through the DSP chain
+    ///
+    /// # Errors
+    /// Returns `Error::BufferTooLarge` if frame size exceeds `MAX_FRAME_SIZE`
     pub fn process_frame(&mut self, frame: &mut AudioFrame) -> Result<()> {
         for ch in 0..frame.num_channels() {
             if let Some(channel) = frame.channel_mut(ch) {
@@ -133,6 +161,7 @@ impl AudioProcessor {
         Ok(())
     }
 
+    /// Resets all DSP components to their initial state
     pub fn reset(&mut self) {
         self.highpass.reset();
         self.lowpass.reset();
@@ -141,10 +170,14 @@ impl AudioProcessor {
         self.envelope.reset();
     }
 
+    /// Gets the processor configuration
+    #[must_use]
     pub fn config(&self) -> &ProcessorConfig {
         &self.config
     }
 
+    /// Gets the current envelope level (for monitoring)
+    #[must_use]
     pub fn envelope_level(&self) -> Sample {
         self.envelope.level()
     }
