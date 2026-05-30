@@ -1,7 +1,7 @@
 #![allow(unsafe_op_in_unsafe_fn)]
 #![allow(unsafe_code)]
 
-use std::{slice, ptr};
+use std::slice;
 
 use airten_core::{AudioProcessor, ProcessorConfig};
 use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};
