@@ -10,6 +10,7 @@ impl Resampler {
     /// Creates a new resampler with the given input and output sample rates
     #[must_use]
     #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn new(input_rate: u32, output_rate: u32) -> Self {
         Self {
             // Casting from f64 to f32 is acceptable for audio ratio calculations
@@ -30,6 +31,7 @@ impl Resampler {
     #[must_use]
     #[allow(clippy::cast_precision_loss)]
     #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn output_size(&self, input_size: usize) -> usize {
         // Casting from f64 to usize is acceptable for size calculations
         ((input_size as f64) / f64::from(self.ratio)).ceil() as usize
@@ -39,6 +41,7 @@ impl Resampler {
     #[must_use]
     #[allow(clippy::cast_precision_loss)]
     #[allow(clippy::cast_sign_loss)]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn input_size(&self, output_size: usize) -> usize {
         // Casting from f64 to usize is acceptable for size calculations
         ((output_size as f64) * f64::from(self.ratio)).ceil() as usize
@@ -57,6 +60,7 @@ impl Resampler {
         while out_idx < output.len() {
             #[allow(clippy::cast_precision_loss)]
             #[allow(clippy::cast_possible_truncation)]
+            #[allow(clippy::cast_sign_loss)]
             let idx = self.phase as usize;
 
             if idx >= input.len() {
@@ -94,6 +98,7 @@ impl Resampler {
     }
 
     #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn set_ratio(&mut self, input_rate: u32, output_rate: u32) {
         self.ratio = input_rate as Sample / output_rate as Sample;
     }

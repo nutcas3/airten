@@ -28,6 +28,7 @@ serde = ["dep:serde"]
 
 [dependencies]
 serde = { workspace = true, optional = true }
+libm = { version = "0.2", optional = true }
 
 [dev-dependencies]
 criterion = { workspace = true }

@@ -44,11 +44,7 @@ impl Q15 {
     /// Creates Q15 from f32 value, clamping to valid range
     #[inline]
     pub fn from_f32(x: Sample) -> Self {
-        let scaled = if cfg!(feature = "std") {
-            (x * Self::SCALE as Sample).round()
-        } else {
-            roundf(x * Self::SCALE as Sample)
-        };
+        let scaled = (x * Self::SCALE as Sample).round();
         let clamped = scaled.clamp(Sample::from(i16::MIN), Sample::from(i16::MAX));
         Self(clamped as i16)
     }

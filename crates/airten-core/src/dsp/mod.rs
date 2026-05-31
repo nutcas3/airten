@@ -43,55 +43,43 @@ pub mod constants {
 
 /// Convert decibels to linear amplitude
 #[inline]
+#[must_use]
 pub fn db_to_linear(db: crate::Sample) -> crate::Sample {
-    if cfg!(feature = "std") {
-        10.0_f32.powf(db / 20.0)
-    } else {
-        powf(10.0, db / 20.0)
-    }
+    10.0_f32.powf(db / 20.0)
 }
 
 /// Convert linear amplitude to decibels
 #[inline]
+#[must_use]
 pub fn linear_to_db(linear: crate::Sample) -> crate::Sample {
     if linear <= constants::MIN_LINEAR {
         constants::MIN_DB
     } else {
-        if cfg!(feature = "std") {
-            20.0 * linear.log10()
-        } else {
-            20.0 * log10f(linear)
-        }
+        20.0 * linear.log10()
     }
 }
-
 /// Apply soft clipping to prevent harsh distortion
 #[inline]
+#[must_use]
 pub fn soft_clip(x: crate::Sample) -> crate::Sample {
-    if cfg!(feature = "std") {
-        x.tanh()
-    } else {
-        tanhf(x)
-    }
+    x.tanh()
 }
 
 /// Apply hard clipping with a specified threshold
 #[inline]
+#[must_use]
 pub fn hard_clip(x: crate::Sample, threshold: crate::Sample) -> crate::Sample {
     x.clamp(-threshold, threshold)
 }
 
 /// Convert time in milliseconds to filter time constant
 #[inline]
+#[must_use]
 pub fn time_constant(time_ms: crate::Sample, sample_rate: crate::Sample) -> crate::Sample {
     if time_ms <= 0.0 {
         0.0
     } else {
-        if cfg!(feature = "std") {
-            (-1.0 / (time_ms * 0.001 * sample_rate)).exp()
-        } else {
-            expf(-1.0 / (time_ms * 0.001 * sample_rate))
-        }
+        (-1.0 / (time_ms * 0.001 * sample_rate)).exp()
     }
 }
 

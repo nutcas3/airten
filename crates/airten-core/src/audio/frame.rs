@@ -16,6 +16,7 @@ pub struct AudioFrame {
 impl AudioFrame {
     /// Creates a new audio frame with default settings
     #[must_use]
+    #[allow(clippy::large_stack_arrays)]
     pub const fn new() -> Self {
         Self {
             samples: [[0.0; MAX_FRAME_SIZE]; MAX_CHANNELS],
@@ -27,6 +28,7 @@ impl AudioFrame {
 
     /// Creates a new audio frame with the specified configuration
     #[must_use]
+    #[allow(clippy::large_stack_arrays)]
     pub fn with_config(num_samples: usize, num_channels: usize, sample_rate: u32) -> Self {
         debug_assert!(num_samples <= MAX_FRAME_SIZE);
         debug_assert!(num_channels <= MAX_CHANNELS);
@@ -158,6 +160,7 @@ impl AudioFrame {
 
     /// Returns the RMS (root mean square) level of all samples in the frame
     #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_precision_loss)]
     pub fn rms(&self) -> Sample {
         if self.num_samples == 0 {
