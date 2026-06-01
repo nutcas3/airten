@@ -67,6 +67,8 @@ impl NoiseGate {
     ///
     /// # Arguments
     /// * `hold_ms` - The hold time in milliseconds
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     pub fn set_hold(&mut self, hold_ms: Sample) {
         self.hold_samples = (hold_ms * 0.001 * self.sample_rate) as usize;
     }

@@ -47,10 +47,10 @@ impl Resampler {
         ((output_size as f64) * f64::from(self.ratio)).ceil() as usize
     }
 
+    #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     pub fn process(&mut self, input: &[Sample], output: &mut [Sample]) -> usize {
-        #[allow(clippy::cast_precision_loss)]
-        #[allow(clippy::cast_possible_truncation)]
-        #[allow(clippy::cast_sign_loss)]
         if input.is_empty() {
             return 0;
         }
@@ -58,16 +58,12 @@ impl Resampler {
         let mut out_idx = 0;
 
         while out_idx < output.len() {
-            #[allow(clippy::cast_precision_loss)]
-            #[allow(clippy::cast_possible_truncation)]
-            #[allow(clippy::cast_sign_loss)]
             let idx = self.phase as usize;
 
             if idx >= input.len() {
                 break;
             }
 
-            #[allow(clippy::cast_precision_loss)]
             let frac = self.phase - idx as Sample;
 
             let current = input[idx];

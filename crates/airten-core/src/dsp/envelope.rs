@@ -95,6 +95,8 @@ impl PeakHoldEnvelope {
         follower
     }
 
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
     pub fn set_hold(&mut self, hold_ms: Sample) {
         self.hold_samples = (hold_ms * 0.001 * self.sample_rate) as usize;
     }
@@ -141,6 +143,7 @@ mod tests {
         let mut env = EnvelopeFollower::new(48000.0);
 
         for i in 0..1000 {
+            #[allow(clippy::cast_precision_loss)]
             let input = (i as Sample) / 1000.0;
             env.process(input);
         }
