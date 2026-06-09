@@ -90,7 +90,6 @@ pub fn calculate_thd(samples: &[Sample], fundamental_freq: f32, sample_rate: u32
     let n = samples.len();
     let fundamental_bin = (fundamental_freq * n as f32 / sample_rate as f32).round() as usize;
 
-    let fundamental_power;
     let mut harmonic_power = 0.0f32;
 
     // Calculate power at fundamental
@@ -101,7 +100,7 @@ pub fn calculate_thd(samples: &[Sample], fundamental_freq: f32, sample_rate: u32
         real += sample * (omega * i as f32).cos();
         imag += sample * (omega * i as f32).sin();
     }
-    fundamental_power = (real * real + imag * imag) / (n * n) as f32;
+    let fundamental_power = (real * real + imag * imag) / (n * n) as f32;
 
     // Calculate power at harmonics (2nd through 5th)
     for harmonic in 2..=5 {
@@ -179,7 +178,7 @@ mod tests {
 
         // Check that values are in valid range
         for &s in &samples {
-            assert!(s >= -1.0 && s <= 1.0);
+            assert!((-1.0..=1.0).contains(&s));
         }
     }
 
@@ -190,7 +189,7 @@ mod tests {
 
         // Check amplitude bounds
         for &s in &samples {
-            assert!(s >= -0.5 && s <= 0.5);
+            assert!((-0.5..=0.5).contains(&s));
         }
     }
 
