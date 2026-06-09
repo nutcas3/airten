@@ -32,7 +32,7 @@ pub fn calculate_rms_simd(samples: &[Sample]) -> Sample {
         return 0.0;
     }
     let sum: Sample = samples.iter().map(|&x| x * x).sum();
-    (sum / samples.len() as Sample).sqrt()
+    libm::sqrtf(sum / samples.len() as Sample)
 }
 
 /// Find peak using scalar operations (SIMD disabled on stable)

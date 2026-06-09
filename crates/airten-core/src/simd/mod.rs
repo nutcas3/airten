@@ -11,6 +11,7 @@ pub use x86::*;
 pub use arm::*;
 
 use crate::Sample;
+use libm::sqrtf;
 
 #[inline]
 pub fn process_gain(input: &[Sample], output: &mut [Sample], gain: Sample) {
@@ -65,7 +66,7 @@ pub fn calculate_rms(samples: &[Sample]) -> Sample {
     #[cfg(not(all(feature = "simd", any(target_arch = "x86_64", target_arch = "aarch64"))))]
     {
         let sum_sq: Sample = samples.iter().map(|&x| x * x).sum();
-        (sum_sq / samples.len() as Sample).sqrt()
+        sqrtf(sum_sq / samples.len() as Sample)
     }
 }
 

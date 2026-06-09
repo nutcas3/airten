@@ -216,3 +216,9 @@ mod tests {
         assert!(matches!(result, Err(Error::BufferTooLarge)));
     }
 }
+
+#[cfg(not(feature = "std"))]
+#[panic_handler]
+fn panic(_info: &core::panic::PanicInfo) -> ! {
+    loop {}
+}

@@ -1,7 +1,7 @@
 use crate::Sample;
 
 #[cfg(not(feature = "std"))]
-use compiler_builtins::float::traits::Float;
+use libm::{expf, tanhf};
 
 /// Neural network activation function types
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -97,7 +97,7 @@ impl Activation {
                 }
                 #[cfg(not(feature = "std"))]
                 {
-                    1.0 / (1.0 + Float::exp(-x))
+                    1.0 / (1.0 + expf(-x))
                 }
             }
             ActivationType::Tanh => {
@@ -107,7 +107,7 @@ impl Activation {
                 }
                 #[cfg(not(feature = "std"))]
                 {
-                    Float::tanh(x)
+                    tanhf(x)
                 }
             }
             ActivationType::ELU => {
@@ -120,7 +120,7 @@ impl Activation {
                     }
                     #[cfg(not(feature = "std"))]
                     {
-                        self.alpha * (Float::exp(x) - 1.0)
+                        self.alpha * (expf(x) - 1.0)
                     }
                 }
             }
@@ -132,7 +132,7 @@ impl Activation {
                 }
                 #[cfg(not(feature = "std"))]
                 {
-                    x * (1.0 / (1.0 + Float::exp(-x)))
+                    x * (1.0 / (1.0 + expf(-x)))
                 }
             }
             ActivationType::GELU => {
@@ -144,7 +144,7 @@ impl Activation {
                 }
                 #[cfg(not(feature = "std"))]
                 {
-                    0.5 * x * (1.0 + Float::tanh(inner))
+                    0.5 * x * (1.0 + tanhf(inner))
                 }
             }
         }
@@ -179,7 +179,7 @@ impl Activation {
             }
             #[cfg(not(feature = "std"))]
             {
-                *x = Float::exp(*x - max);
+                *x = expf(*x - max);
             }
             sum += *x;
         }
@@ -228,7 +228,7 @@ impl Activation {
                 }
                 #[cfg(not(feature = "std"))]
                 {
-                    let t = Float::tanh(x);
+                    let t = tanhf(x);
                     1.0 - t * t
                 }
             }
@@ -248,7 +248,7 @@ impl Activation {
                 }
                 #[cfg(not(feature = "std"))]
                 {
-                    let s = 1.0 / (1.0 + Float::exp(-x));
+                    let s = 1.0 / (1.0 + expf(-x));
                     s + x * s * (1.0 - s)
                 }
             }
@@ -264,7 +264,7 @@ impl Activation {
                 }
                 #[cfg(not(feature = "std"))]
                 {
-                    let tanh_inner = Float::tanh(inner);
+                    let tanh_inner = tanhf(inner);
                     let sech2 = 1.0 - tanh_inner * tanh_inner;
                     0.5 * (1.0 + tanh_inner)
                         + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134_145 * x * x)

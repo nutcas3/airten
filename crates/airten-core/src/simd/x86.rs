@@ -64,7 +64,7 @@ pub fn calculate_rms_simd(samples: &[Sample]) -> Sample {
         sum += samples[i] * samples[i];
     }
 
-    (sum / len as Sample).sqrt()
+    libm::sqrtf(sum / len as Sample)
 }
 
 #[inline]
@@ -110,7 +110,7 @@ pub fn soft_clip_simd(samples: &mut [Sample]) {
     }
 
     for i in simd_len..len {
-        samples[i] = samples[i].tanh();
+        samples[i] = libm::tanhf(samples[i]);
     }
 }
 

@@ -1,4 +1,5 @@
 use crate::Sample;
+use libm::ceil;
 
 /// A linear-interpolation audio resampler for converting between sample rates.
 pub struct Resampler {
@@ -35,7 +36,7 @@ impl Resampler {
     #[allow(clippy::cast_possible_truncation)]
     pub fn output_size(&self, input_size: usize) -> usize {
         // Casting from f64 to usize is acceptable for size calculations
-        ((input_size as f64) / f64::from(self.ratio)).ceil() as usize
+        ceil((input_size as f64) / f64::from(self.ratio)) as usize
     }
 
     /// Returns the input size for a given output size
@@ -45,7 +46,7 @@ impl Resampler {
     #[allow(clippy::cast_possible_truncation)]
     pub fn input_size(&self, output_size: usize) -> usize {
         // Casting from f64 to usize is acceptable for size calculations
-        ((output_size as f64) * f64::from(self.ratio)).ceil() as usize
+        ceil((output_size as f64) * f64::from(self.ratio)) as usize
     }
 
     /// Processes input samples into the output buffer using linear interpolation.

@@ -1,4 +1,5 @@
 use crate::{MAX_CHANNELS, MAX_FRAME_SIZE, Sample};
+use libm::sqrt;
 
 /// Multi-channel audio frame for sample storage and processing
 ///
@@ -180,7 +181,7 @@ impl AudioFrame {
 
         if count > 0 {
             // Casting from f64 to f32 is acceptable for audio RMS calculations
-            (f64::from(sum_sq) / count as f64).sqrt() as Sample
+            sqrt(f64::from(sum_sq) / count as f64) as Sample
         } else {
             0.0
         }
@@ -247,7 +248,7 @@ mod tests {
 
         assert!((frame.peak() - 1.0).abs() < 0.001);
 
-        let expected_rms = ((0.25 + 1.0 + 0.0625 + 0.5625) / 4.0f32).sqrt();
+        let expected_rms = libm::sqrtf((0.25 + 1.0 + 0.0625 + 0.5625) / 4.0f32);
         assert!((frame.rms() - expected_rms).abs() < 0.001);
     }
 }
