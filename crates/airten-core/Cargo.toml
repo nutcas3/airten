@@ -42,6 +42,7 @@ harness = false
 [[bench]]
 name = "simd"
 harness = false
+required-features = ["simd"]
 
 [[bench]]
 name = "latency"

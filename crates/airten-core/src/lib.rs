@@ -206,6 +206,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::large_stack_arrays)]
     fn test_buffer_too_large() {
         let config = ProcessorConfig::default();
         let mut processor = AudioProcessor::new(config);

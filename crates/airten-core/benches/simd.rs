@@ -1,6 +1,6 @@
-use airten_core::Sample;
 use airten_core::simd::{calculate_rms, find_peak, process_gain_scalar};
-use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
+use std::hint::black_box;
 
 fn bench_gain_scalar(c: &mut Criterion) {
     let mut group = c.benchmark_group("Gain_Scalar");

@@ -1,5 +1,5 @@
 use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};
-use airten_core::{AudioProcessor, ProcessorConfig, Sample};
+use airten_core::{AudioProcessor, ProcessorConfig};
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 
 fn bench_processor(c: &mut Criterion) {
