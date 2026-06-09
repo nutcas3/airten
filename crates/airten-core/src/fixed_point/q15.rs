@@ -6,7 +6,9 @@ use libm::roundf;
 
 #[cfg(feature = "std")]
 #[inline]
-fn roundf(x: f32) -> f32 { x.round() }
+fn roundf(x: f32) -> f32 {
+    x.round()
+}
 
 /// Q15 fixed-point number format (16-bit signed integer with 15 fractional bits)
 ///

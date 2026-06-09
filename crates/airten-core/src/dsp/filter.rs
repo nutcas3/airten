@@ -6,16 +6,24 @@ use libm::{cosf, powf, sinf, sqrtf};
 
 #[cfg(feature = "std")]
 #[inline]
-fn sinf(x: f32) -> f32 { x.sin() }
+fn sinf(x: f32) -> f32 {
+    x.sin()
+}
 #[cfg(feature = "std")]
 #[inline]
-fn cosf(x: f32) -> f32 { x.cos() }
+fn cosf(x: f32) -> f32 {
+    x.cos()
+}
 #[cfg(feature = "std")]
 #[inline]
-fn powf(x: f32, y: f32) -> f32 { x.powf(y) }
+fn powf(x: f32, y: f32) -> f32 {
+    x.powf(y)
+}
 #[cfg(feature = "std")]
 #[inline]
-fn sqrtf(x: f32) -> f32 { x.sqrt() }
+fn sqrtf(x: f32) -> f32 {
+    x.sqrt()
+}
 
 /// Types of biquad filters
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

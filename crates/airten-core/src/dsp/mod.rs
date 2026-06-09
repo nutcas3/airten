@@ -5,16 +5,24 @@ use libm::{expf, log10f, powf, tanhf};
 
 #[cfg(feature = "std")]
 #[inline]
-fn powf(x: f32, y: f32) -> f32 { x.powf(y) }
+fn powf(x: f32, y: f32) -> f32 {
+    x.powf(y)
+}
 #[cfg(feature = "std")]
 #[inline]
-fn log10f(x: f32) -> f32 { x.log10() }
+fn log10f(x: f32) -> f32 {
+    x.log10()
+}
 #[cfg(feature = "std")]
 #[inline]
-fn tanhf(x: f32) -> f32 { x.tanh() }
+fn tanhf(x: f32) -> f32 {
+    x.tanh()
+}
 #[cfg(feature = "std")]
 #[inline]
-fn expf(x: f32) -> f32 { x.exp() }
+fn expf(x: f32) -> f32 {
+    x.exp()
+}
 
 mod compressor;
 mod envelope;
