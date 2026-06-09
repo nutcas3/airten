@@ -5,6 +5,19 @@ use compiler_builtins::float::traits::Float;
 #[cfg(not(feature = "std"))]
 use libm::{expf, log10f, powf, tanhf};
 
+#[cfg(feature = "std")]
+#[inline]
+fn powf(x: f32, y: f32) -> f32 { x.powf(y) }
+#[cfg(feature = "std")]
+#[inline]
+fn log10f(x: f32) -> f32 { x.log10() }
+#[cfg(feature = "std")]
+#[inline]
+fn tanhf(x: f32) -> f32 { x.tanh() }
+#[cfg(feature = "std")]
+#[inline]
+fn expf(x: f32) -> f32 { x.exp() }
+
 mod compressor;
 mod envelope;
 mod filter;
@@ -45,7 +58,7 @@ pub mod constants {
 #[inline]
 #[must_use]
 pub fn db_to_linear(db: crate::Sample) -> crate::Sample {
-    10.0_f32.powf(db / 20.0)
+    powf(10.0, db / 20.0)
 }
 
 /// Convert linear amplitude to decibels
@@ -55,14 +68,14 @@ pub fn linear_to_db(linear: crate::Sample) -> crate::Sample {
     if linear <= constants::MIN_LINEAR {
         constants::MIN_DB
     } else {
-        20.0 * linear.log10()
+        20.0 * log10f(linear)
     }
 }
 /// Apply soft clipping to prevent harsh distortion
 #[inline]
 #[must_use]
 pub fn soft_clip(x: crate::Sample) -> crate::Sample {
-    x.tanh()
+    tanhf(x)
 }
 
 /// Apply hard clipping with a specified threshold
@@ -79,7 +92,7 @@ pub fn time_constant(time_ms: crate::Sample, sample_rate: crate::Sample) -> crat
     if time_ms <= 0.0 {
         0.0
     } else {
-        (-1.0 / (time_ms * 0.001 * sample_rate)).exp()
+        expf(-1.0 / (time_ms * 0.001 * sample_rate))
     }
 }
 

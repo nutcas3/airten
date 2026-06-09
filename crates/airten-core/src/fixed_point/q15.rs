@@ -4,6 +4,10 @@ use core::ops::{Add, Mul, Neg, Sub};
 #[cfg(not(feature = "std"))]
 use libm::roundf;
 
+#[cfg(feature = "std")]
+#[inline]
+fn roundf(x: f32) -> f32 { x.round() }
+
 /// Q15 fixed-point number format (16-bit signed integer with 15 fractional bits)
 ///
 /// Q15 format represents numbers in the range [-1.0, 1.0) using 16-bit signed integers.
@@ -47,8 +51,9 @@ impl Q15 {
     #[inline]
     #[must_use]
     #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::cast_possible_truncation)]
     pub fn from_f32(x: Sample) -> Self {
-        let scaled = (x * Self::SCALE as Sample).round();
+        let scaled = roundf(x * Self::SCALE as Sample);
         let clamped = scaled.clamp(Sample::from(i16::MIN), Sample::from(i16::MAX));
         Self(clamped as i16)
     }
