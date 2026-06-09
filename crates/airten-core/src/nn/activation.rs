@@ -10,7 +10,7 @@ pub enum ActivationType {
     Linear,
     /// Rectified Linear Unit
     ReLU,
-    /// Leaky ReLU with configurable alpha
+    /// Leaky `ReLU` with configurable alpha
     LeakyReLU,
     /// Sigmoid activation function
     Sigmoid,
@@ -30,7 +30,7 @@ pub enum ActivationType {
 pub struct Activation {
     /// Type of activation function
     pub activation_type: ActivationType,
-    /// Alpha parameter for functions like LeakyReLU and ELU
+    /// Alpha parameter for functions like `LeakyReLU` and `ELU`
     pub alpha: Sample,
 }
 
@@ -39,6 +39,7 @@ impl Activation {
     ///
     /// # Arguments
     /// * `activation_type` - Type of activation function
+    #[must_use]
     pub fn new(activation_type: ActivationType) -> Self {
         Self {
             activation_type,
@@ -46,10 +47,11 @@ impl Activation {
         }
     }
 
-    /// Creates a LeakyReLU activation with specified alpha
+    /// Creates a `LeakyReLU` activation with specified alpha
     ///
     /// # Arguments
     /// * `alpha` - Slope for negative values (typically 0.01)
+    #[must_use]
     pub fn leaky_relu(alpha: Sample) -> Self {
         Self {
             activation_type: ActivationType::LeakyReLU,
@@ -57,10 +59,11 @@ impl Activation {
         }
     }
 
-    /// Creates an ELU activation with specified alpha
+    /// Creates an `ELU` activation with specified alpha
     ///
     /// # Arguments
     /// * `alpha` - Alpha parameter for ELU (typically 1.0)
+    #[must_use]
     pub fn elu(alpha: Sample) -> Self {
         Self {
             activation_type: ActivationType::ELU,
@@ -76,9 +79,9 @@ impl Activation {
     /// # Returns
     /// Activated output value
     #[inline]
+    #[must_use]
     pub fn apply(&self, x: Sample) -> Sample {
         match self.activation_type {
-            ActivationType::Linear => x,
             ActivationType::ReLU => x.max(0.0),
             ActivationType::LeakyReLU => {
                 if x > 0.0 {
@@ -121,7 +124,7 @@ impl Activation {
                     }
                 }
             }
-            ActivationType::Softmax => x,
+            ActivationType::Linear | ActivationType::Softmax => x,
             ActivationType::Swish => {
                 #[cfg(feature = "std")]
                 {
@@ -153,7 +156,7 @@ impl Activation {
     /// * `data` - Mutable slice of values to activate
     pub fn apply_inplace(&self, data: &mut [Sample]) {
         if self.activation_type == ActivationType::Softmax {
-            self.apply_softmax(data);
+            Self::apply_softmax(data);
         } else {
             for x in data.iter_mut() {
                 *x = self.apply(*x);
@@ -165,7 +168,7 @@ impl Activation {
     ///
     /// # Arguments
     /// * `data` - Mutable slice of values for softmax
-    fn apply_softmax(&self, data: &mut [Sample]) {
+    fn apply_softmax(data: &mut [Sample]) {
         let max = data.iter().copied().fold(Sample::NEG_INFINITY, Sample::max);
 
         let mut sum = 0.0;
@@ -196,9 +199,9 @@ impl Activation {
     /// # Returns
     /// Derivative value at x
     #[inline]
+    #[must_use]
     pub fn derivative(&self, x: Sample) -> Sample {
         match self.activation_type {
-            ActivationType::Linear => 1.0,
             ActivationType::ReLU => {
                 if x > 0.0 {
                     1.0
@@ -236,7 +239,7 @@ impl Activation {
                     self.apply(x) + self.alpha
                 }
             }
-            ActivationType::Softmax => 1.0,
+            ActivationType::Linear | ActivationType::Softmax => 1.0,
             ActivationType::Swish => {
                 #[cfg(feature = "std")]
                 {

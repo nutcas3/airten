@@ -1,5 +1,6 @@
 use crate::Sample;
 
+/// A linear-interpolation audio resampler for converting between sample rates.
 pub struct Resampler {
     ratio: Sample,
     phase: Sample,
@@ -47,6 +48,9 @@ impl Resampler {
         ((output_size as f64) * f64::from(self.ratio)).ceil() as usize
     }
 
+    /// Processes input samples into the output buffer using linear interpolation.
+    ///
+    /// Returns the number of samples written to the output buffer.
     #[allow(clippy::cast_precision_loss)]
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_sign_loss)]
@@ -88,11 +92,13 @@ impl Resampler {
         out_idx
     }
 
+    /// Resets the resampler phase and last sample state.
     pub fn reset(&mut self) {
         self.phase = 0.0;
         self.last_sample = 0.0;
     }
 
+    /// Updates the resampling ratio for the given input and output sample rates.
     #[allow(clippy::cast_precision_loss)]
     #[allow(clippy::cast_possible_truncation)]
     pub fn set_ratio(&mut self, input_rate: u32, output_rate: u32) {

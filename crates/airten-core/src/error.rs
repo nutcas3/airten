@@ -1,6 +1,6 @@
 use core::fmt;
 
-/// Result type for AirTen operations
+/// Result type for `AirTen` operations
 pub type Result<T> = core::result::Result<T, Error>;
 
 /// Errors that can occur during audio processing

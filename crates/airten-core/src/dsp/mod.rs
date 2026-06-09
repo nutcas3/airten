@@ -32,7 +32,7 @@ pub mod constants {
     pub const DB_TO_LINEAR: Sample = 0.115_129_25;
 
     /// Conversion factor from linear amplitude to decibels (20 / ln(10))
-    pub const LINEAR_TO_DB: Sample = 8.685_889_6;
+    pub const LINEAR_TO_DB: Sample = 8.685_889;
 
     /// Minimum decibel level (floor for calculations)
     pub const MIN_DB: Sample = -120.0;

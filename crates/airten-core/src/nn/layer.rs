@@ -20,6 +20,7 @@ impl Layer {
     /// * `biases` - Static reference to bias vector
     /// * `input_size` - Number of input neurons
     /// * `output_size` - Number of output neurons
+    #[must_use]
     pub const fn new(
         weights: &'static [Sample],
         biases: &'static [Sample],
@@ -39,6 +40,7 @@ impl Layer {
     }
 
     /// Sets the activation function for this layer
+    #[must_use]
     pub fn with_activation(mut self, activation: Activation) -> Self {
         self.activation = activation;
         self
@@ -46,12 +48,14 @@ impl Layer {
 
     /// Returns the input size of this layer
     #[inline]
+    #[must_use]
     pub fn input_size(&self) -> usize {
         self.input_size
     }
 
     /// Returns the output size of this layer
     #[inline]
+    #[must_use]
     pub fn output_size(&self) -> usize {
         self.output_size
     }
@@ -65,15 +69,15 @@ impl Layer {
         debug_assert_eq!(input.len(), self.input_size);
         debug_assert_eq!(output.len(), self.output_size);
 
-        for i in 0..self.output_size {
+        for (i, out) in output.iter_mut().enumerate().take(self.output_size) {
             let mut sum = self.biases[i];
             let weight_offset = i * self.input_size;
 
-            for j in 0..self.input_size {
-                sum += input[j] * self.weights[weight_offset + j];
+            for (j, in_sample) in input.iter().enumerate().take(self.input_size) {
+                sum += in_sample * self.weights[weight_offset + j];
             }
 
-            output[i] = self.activation.apply(sum);
+            *out = self.activation.apply(sum);
         }
     }
 
@@ -86,15 +90,15 @@ impl Layer {
         debug_assert_eq!(input.len(), self.input_size);
         debug_assert_eq!(output.len(), self.output_size);
 
-        for i in 0..self.output_size {
+        for (i, out) in output.iter_mut().enumerate().take(self.output_size) {
             let mut sum = self.biases[i];
             let weight_offset = i * self.input_size;
 
-            for j in 0..self.input_size {
-                sum += input[j] * self.weights[weight_offset + j];
+            for (j, in_sample) in input.iter().enumerate().take(self.input_size) {
+                sum += in_sample * self.weights[weight_offset + j];
             }
 
-            output[i] = sum;
+            *out = sum;
         }
     }
 }

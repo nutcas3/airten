@@ -18,6 +18,7 @@ pub struct NeuralNetwork {
 
 impl NeuralNetwork {
     /// Creates a new neural network with no layers
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             layers: [None; MAX_LAYERS],
@@ -31,6 +32,11 @@ impl NeuralNetwork {
     ///
     /// # Arguments
     /// * `layer` - Static reference to a layer
+    ///
+    /// # Errors
+    ///
+    /// Returns `Error::BufferTooLarge` if the maximum number of layers is reached.
+    /// Returns `Error::InvalidModelFormat` if the layer sizes are incompatible.
     pub fn add_layer(&mut self, layer: &'static Layer) -> Result<()> {
         if self.num_layers >= MAX_LAYERS {
             return Err(Error::BufferTooLarge);
@@ -50,21 +56,24 @@ impl NeuralNetwork {
         Ok(())
     }
 
-    #[inline]
     /// Returns the number of layers in the network
+    #[inline]
+    #[must_use]
     pub fn num_layers(&self) -> usize {
         self.num_layers
     }
 
     /// Returns the input size of the network (first layer input size)
+    #[must_use]
     pub fn input_size(&self) -> Option<usize> {
-        self.layers[0].map(|l| l.input_size())
+        self.layers[0].map(Layer::input_size)
     }
 
     /// Returns the output size of the network (last layer output size)
+    #[must_use]
     pub fn output_size(&self) -> Option<usize> {
         if self.num_layers > 0 {
-            self.layers[self.num_layers - 1].map(|l| l.output_size())
+            self.layers[self.num_layers - 1].map(Layer::output_size)
         } else {
             None
         }
@@ -75,6 +84,11 @@ impl NeuralNetwork {
     /// # Arguments
     /// * `input` - Input samples
     /// * `output` - Output buffer (must be large enough for network output)
+    ///
+    /// # Errors
+    ///
+    /// Returns `Error::ModelNotLoaded` if no layers have been added.
+    /// Returns `Error::InvalidBufferSize` if the input or output buffers are the wrong size.
     pub fn forward(&mut self, input: &[Sample], output: &mut [Sample]) -> Result<()> {
         if self.num_layers == 0 {
             return Err(Error::ModelNotLoaded);

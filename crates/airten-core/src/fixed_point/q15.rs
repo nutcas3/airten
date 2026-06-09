@@ -30,12 +30,14 @@ impl Q15 {
 
     /// Creates Q15 from raw integer value
     #[inline]
+    #[must_use]
     #[allow(dead_code)]
     pub const fn from_raw(raw: i16) -> Self {
         Self(raw)
     }
 
     /// Returns raw integer value
+    #[must_use]
     #[allow(dead_code)]
     pub const fn to_raw(self) -> i16 {
         self.0
@@ -43,6 +45,8 @@ impl Q15 {
 
     /// Creates Q15 from f32 value, clamping to valid range
     #[inline]
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn from_f32(x: Sample) -> Self {
         let scaled = (x * Self::SCALE as Sample).round();
         let clamped = scaled.clamp(Sample::from(i16::MIN), Sample::from(i16::MAX));
@@ -51,33 +55,39 @@ impl Q15 {
 
     /// Converts Q15 to f32 value
     #[inline]
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
     pub fn to_f32(self) -> Sample {
-        (self.0 as Sample) / Self::SCALE as Sample
+        Sample::from(self.0) / Self::SCALE as Sample
     }
 
     /// Saturating addition that clamps to valid Q15 range
     #[inline]
+    #[must_use]
     pub fn saturating_add(self, rhs: Self) -> Self {
         Self(self.0.saturating_add(rhs.0))
     }
 
     /// Saturating subtraction that clamps to valid Q15 range
     #[inline]
+    #[must_use]
     pub fn saturating_sub(self, rhs: Self) -> Self {
         Self(self.0.saturating_sub(rhs.0))
     }
 
     /// Q15 multiplication with proper scaling and saturation
     #[inline]
+    #[must_use]
     pub fn mul_q15(self, rhs: Self) -> Self {
-        let product = (self.0 as i32) * (rhs.0 as i32);
+        let product = i32::from(self.0) * i32::from(rhs.0);
         let shifted = (product + (1 << 14)) >> 15;
-        let saturated = shifted.clamp(i16::MIN as i32, i16::MAX as i32);
-        Self(saturated as i16)
+        let saturated = shifted.clamp(i32::from(i16::MIN), i32::from(i16::MAX));
+        Self(i16::try_from(saturated).unwrap_or(i16::MAX))
     }
 
     /// Returns the absolute value
     #[inline]
+    #[must_use]
     #[allow(dead_code)]
     pub fn abs(self) -> Self {
         Self(self.0.saturating_abs())
@@ -85,6 +95,7 @@ impl Q15 {
 
     /// Returns the saturated negation
     #[inline]
+    #[must_use]
     #[allow(dead_code)]
     pub fn saturating_neg(self) -> Self {
         Self(self.0.saturating_neg())
@@ -96,6 +107,7 @@ impl Q15 {
     /// * `other` - End value
     /// * `t` - Interpolation parameter (0.0 = self, 1.0 = other)
     #[inline]
+    #[must_use]
     #[allow(dead_code)]
     pub fn lerp(self, other: Self, t: Self) -> Self {
         let diff = other.saturating_sub(self);
@@ -108,8 +120,9 @@ impl Q15 {
     /// # Arguments
     /// * `n` - Number of bits to shift
     #[inline]
+    #[must_use]
     #[allow(dead_code)]
-    pub fn shl(self, n: u32) -> Self {
+    pub fn shift_left(self, n: u32) -> Self {
         Self(self.0.saturating_mul(1i16.wrapping_shl(n)))
     }
 
@@ -118,8 +131,9 @@ impl Q15 {
     /// # Arguments
     /// * `n` - Number of bits to shift
     #[inline]
+    #[must_use]
     #[allow(dead_code)]
-    pub fn shr(self, n: u32) -> Self {
+    pub fn shift_right(self, n: u32) -> Self {
         Self(self.0 >> n)
     }
 }

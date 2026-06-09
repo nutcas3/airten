@@ -80,13 +80,12 @@ impl<const N: usize> RingBuffer<N> {
             let read = self.read_pos.load(Ordering::Acquire);
             let next = (write + 1) % N;
 
-            if next != read {
-                self.buffer[write] = sample;
-                self.write_pos.store(next, Ordering::Release);
-                written += 1;
-            } else {
+            if next == read {
                 break; // Buffer full
             }
+            self.buffer[write] = sample;
+            self.write_pos.store(next, Ordering::Release);
+            written += 1;
         }
 
         written
@@ -119,13 +118,12 @@ impl<const N: usize> RingBuffer<N> {
             let read = self.read_pos.load(Ordering::Acquire);
             let write = self.write_pos.load(Ordering::Acquire);
 
-            if read != write {
-                *sample = self.buffer[read];
-                self.read_pos.store((read + 1) % N, Ordering::Release);
-                read_count += 1;
-            } else {
+            if read == write {
                 break; // Buffer empty
             }
+            *sample = self.buffer[read];
+            self.read_pos.store((read + 1) % N, Ordering::Release);
+            read_count += 1;
         }
 
         read_count
@@ -156,13 +154,12 @@ impl<const N: usize> RingBuffer<N> {
         let mut count = 0;
 
         for sample in data.iter_mut() {
-            if read_pos != write_pos {
-                *sample = self.buffer[read_pos];
-                read_pos = (read_pos + 1) % N;
-                count += 1;
-            } else {
+            if read_pos == write_pos {
                 break;
             }
+            *sample = self.buffer[read_pos];
+            read_pos = (read_pos + 1) % N;
+            count += 1;
         }
 
         count
