@@ -43,12 +43,11 @@ impl NeuralNetwork {
         }
 
         // Validate layer connectivity
-        if self.num_layers > 0 {
-            if let Some(prev) = self.layers[self.num_layers - 1] {
-                if prev.output_size() != layer.input_size() {
-                    return Err(Error::InvalidModelFormat);
-                }
-            }
+        if self.num_layers > 0
+            && let Some(prev) = self.layers[self.num_layers - 1]
+            && prev.output_size() != layer.input_size()
+        {
+            return Err(Error::InvalidModelFormat);
         }
 
         self.layers[self.num_layers] = Some(layer);
