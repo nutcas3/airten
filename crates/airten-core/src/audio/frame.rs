@@ -135,6 +135,7 @@ impl AudioFrame {
         }
     }
 
+    /// Multiplies all samples in the frame by the given gain factor.
     pub fn apply_gain(&mut self, gain: Sample) {
         for ch in 0..self.num_channels {
             for sample in &mut self.samples[ch][..self.num_samples] {
