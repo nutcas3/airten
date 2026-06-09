@@ -2,7 +2,20 @@ use crate::Sample;
 use crate::dsp::constants::TWO_PI;
 
 #[cfg(not(feature = "std"))]
-use libm::{cosf, powf, sinf};
+use libm::{cosf, powf, sinf, sqrtf};
+
+#[cfg(feature = "std")]
+#[inline]
+fn sinf(x: f32) -> f32 { x.sin() }
+#[cfg(feature = "std")]
+#[inline]
+fn cosf(x: f32) -> f32 { x.cos() }
+#[cfg(feature = "std")]
+#[inline]
+fn powf(x: f32, y: f32) -> f32 { x.powf(y) }
+#[cfg(feature = "std")]
+#[inline]
+fn sqrtf(x: f32) -> f32 { x.sqrt() }
 
 /// Types of biquad filters
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -81,8 +94,8 @@ impl BiquadFilter {
     #[must_use]
     pub fn lowpass(sample_rate: Sample, cutoff: Sample, q: Sample) -> Self {
         let omega = TWO_PI * cutoff / sample_rate;
-        let sin_omega = omega.sin();
-        let cos_omega = omega.cos();
+        let sin_omega = sinf(omega);
+        let cos_omega = cosf(omega);
         let alpha = sin_omega / (2.0 * q);
 
         let b0 = (1.0 - cos_omega) / 2.0;
@@ -105,8 +118,8 @@ impl BiquadFilter {
     #[must_use]
     pub fn highpass(sample_rate: Sample, cutoff: Sample, q: Sample) -> Self {
         let omega = TWO_PI * cutoff / sample_rate;
-        let sin_omega = omega.sin();
-        let cos_omega = omega.cos();
+        let sin_omega = sinf(omega);
+        let cos_omega = cosf(omega);
         let alpha = sin_omega / (2.0 * q);
 
         let b0 = f32::midpoint(1.0, cos_omega);
@@ -129,8 +142,8 @@ impl BiquadFilter {
     #[must_use]
     pub fn bandpass(sample_rate: Sample, center: Sample, q: Sample) -> Self {
         let omega = TWO_PI * center / sample_rate;
-        let sin_omega = omega.sin();
-        let cos_omega = omega.cos();
+        let sin_omega = sinf(omega);
+        let cos_omega = cosf(omega);
         let alpha = sin_omega / (2.0 * q);
 
         let b0 = alpha;
@@ -153,8 +166,8 @@ impl BiquadFilter {
     #[must_use]
     pub fn notch(sample_rate: Sample, center: Sample, q: Sample) -> Self {
         let omega = TWO_PI * center / sample_rate;
-        let sin_omega = omega.sin();
-        let cos_omega = omega.cos();
+        let sin_omega = sinf(omega);
+        let cos_omega = cosf(omega);
         let alpha = sin_omega / (2.0 * q);
 
         let b0 = 1.0;
@@ -176,10 +189,10 @@ impl BiquadFilter {
     /// Creates a peaking filter
     #[must_use]
     pub fn peaking(sample_rate: Sample, center: Sample, q: Sample, gain_db: Sample) -> Self {
-        let a = 10.0_f32.powf(gain_db / 40.0);
+        let a = powf(10.0, gain_db / 40.0);
         let omega = TWO_PI * center / sample_rate;
-        let sin_omega = omega.sin();
-        let cos_omega = omega.cos();
+        let sin_omega = sinf(omega);
+        let cos_omega = cosf(omega);
         let alpha = sin_omega / (2.0 * q);
 
         let b0 = 1.0 + alpha * a;
@@ -201,12 +214,12 @@ impl BiquadFilter {
     /// Creates a low-shelf filter
     #[must_use]
     pub fn low_shelf(sample_rate: Sample, cutoff: Sample, gain_db: Sample) -> Self {
-        let a = 10.0_f32.powf(gain_db / 40.0);
+        let a = powf(10.0, gain_db / 40.0);
         let omega = TWO_PI * cutoff / sample_rate;
-        let sin_omega = omega.sin();
-        let cos_omega = omega.cos();
-        let alpha = sin_omega / 2.0 * ((a + 1.0 / a) * (1.0 / 0.707 - 1.0) + 2.0).sqrt();
-        let two_sqrt_a_alpha = 2.0 * a.sqrt() * alpha;
+        let sin_omega = sinf(omega);
+        let cos_omega = cosf(omega);
+        let alpha = sin_omega / 2.0 * sqrtf((a + 1.0 / a) * (1.0 / 0.707 - 1.0) + 2.0);
+        let two_sqrt_a_alpha = 2.0 * sqrtf(a) * alpha;
 
         let b0 = a * ((a + 1.0) - (a - 1.0) * cos_omega + two_sqrt_a_alpha);
         let b1 = 2.0 * a * ((a - 1.0) - (a + 1.0) * cos_omega);
@@ -227,12 +240,12 @@ impl BiquadFilter {
     /// Creates a high-shelf filter
     #[must_use]
     pub fn high_shelf(sample_rate: Sample, cutoff: Sample, gain_db: Sample) -> Self {
-        let a = 10.0_f32.powf(gain_db / 40.0);
+        let a = powf(10.0, gain_db / 40.0);
         let omega = TWO_PI * cutoff / sample_rate;
-        let sin_omega = omega.sin();
-        let cos_omega = omega.cos();
-        let alpha = sin_omega / 2.0 * ((a + 1.0 / a) * (1.0 / 0.707 - 1.0) + 2.0).sqrt();
-        let two_sqrt_a_alpha = 2.0 * a.sqrt() * alpha;
+        let sin_omega = sinf(omega);
+        let cos_omega = cosf(omega);
+        let alpha = sin_omega / 2.0 * sqrtf((a + 1.0 / a) * (1.0 / 0.707 - 1.0) + 2.0);
+        let two_sqrt_a_alpha = 2.0 * sqrtf(a) * alpha;
 
         let b0 = a * ((a + 1.0) + (a - 1.0) * cos_omega + two_sqrt_a_alpha);
         let b1 = -2.0 * a * ((a - 1.0) + (a + 1.0) * cos_omega);
