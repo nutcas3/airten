@@ -77,11 +77,11 @@ pub fn pink_noise(num_samples: usize, amplitude: f32) -> Vec<Sample> {
 
     for octave in 0..5 {
         let freq = 1 << octave;
-        for i in 0..num_samples {
+        for (i, sample) in samples.iter_mut().enumerate().take(num_samples) {
             if i % freq == 0 {
                 seed = seed.wrapping_mul(1103515245).wrapping_add(12345);
                 let rand = ((seed >> 16) as f32 / 32768.0) - 1.0;
-                samples[i] += rand * amplitude / (octave + 1) as f32;
+                *sample += rand * amplitude / (octave + 1) as f32;
             }
         }
     }

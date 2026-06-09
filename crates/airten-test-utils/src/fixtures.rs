@@ -132,7 +132,7 @@ mod tests {
     #[test]
     fn test_standard_fixtures() {
         let fixtures = TestFixtures::standard();
-        assert!(fixtures.len() > 0);
+        assert!(!fixtures.is_empty());
 
         for fixture in fixtures.all() {
             assert!(!fixture.samples.is_empty());

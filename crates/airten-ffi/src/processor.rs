@@ -5,6 +5,8 @@ use crate::{AirtenAudioBuffer, AirtenError, AirtenStats};
 use airten_core::{AudioFrame, AudioProcessor};
 use std::slice;
 
+/// # Safety
+/// processor and buffer must be valid, non-null pointers.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_process_buffer(
     processor: *mut crate::AirtenProcessor,
@@ -32,7 +34,7 @@ pub unsafe extern "C" fn airten_process_buffer(
         );
         frame.from_interleaved(samples);
 
-        if let Err(_) = processor.process_frame(&mut frame) {
+        if processor.process_frame(&mut frame).is_err() {
             return AirtenError::InternalError;
         }
 
@@ -42,7 +44,7 @@ pub unsafe extern "C" fn airten_process_buffer(
             let offset = ch * buffer.num_samples as usize;
             let channel_samples = &mut samples[offset..offset + buffer.num_samples as usize];
 
-            if let Err(_) = processor.process(channel_samples) {
+            if processor.process(channel_samples).is_err() {
                 return AirtenError::InternalError;
             }
         }
@@ -51,6 +53,8 @@ pub unsafe extern "C" fn airten_process_buffer(
     AirtenError::Ok
 }
 
+/// # Safety
+/// processor and stats must be valid, non-null pointers.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_get_stats(
     processor: *mut crate::AirtenProcessor,
