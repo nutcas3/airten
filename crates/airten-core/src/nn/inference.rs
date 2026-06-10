@@ -5,6 +5,10 @@ use crate::nn::layer::Layer;
 pub const MAX_LAYERS: usize = 16;
 pub const MAX_LAYER_SIZE: usize = 512;
 
+/// Neural network inference engine for real-time audio processing
+///
+/// Supports up to 16 layers with fixed-size buffers for no-heap operation.
+/// Uses static layer references to ensure memory safety in embedded environments.
 pub struct NeuralNetwork {
     layers: [Option<&'static Layer>; MAX_LAYERS],
     num_layers: usize,
@@ -13,6 +17,8 @@ pub struct NeuralNetwork {
 }
 
 impl NeuralNetwork {
+    /// Creates a new neural network with no layers
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             layers: [None; MAX_LAYERS],
@@ -22,42 +28,66 @@ impl NeuralNetwork {
         }
     }
 
+    /// Adds a layer to the network
+    ///
+    /// # Arguments
+    /// * `layer` - Static reference to a layer
+    ///
+    /// # Errors
+    ///
+    /// Returns `Error::BufferTooLarge` if the maximum number of layers is reached.
+    /// Returns `Error::InvalidModelFormat` if the layer sizes are incompatible.
     pub fn add_layer(&mut self, layer: &'static Layer) -> Result<()> {
         if self.num_layers >= MAX_LAYERS {
             return Err(Error::BufferTooLarge);
         }
-        
+
         // Validate layer connectivity
-        if self.num_layers > 0 {
-            if let Some(prev) = self.layers[self.num_layers - 1] {
-                if prev.output_size() != layer.input_size() {
-                    return Err(Error::InvalidModelFormat);
-                }
-            }
+        if self.num_layers > 0
+            && let Some(prev) = self.layers[self.num_layers - 1]
+            && prev.output_size() != layer.input_size()
+        {
+            return Err(Error::InvalidModelFormat);
         }
-        
+
         self.layers[self.num_layers] = Some(layer);
         self.num_layers += 1;
         Ok(())
     }
 
+    /// Returns the number of layers in the network
     #[inline]
+    #[must_use]
     pub fn num_layers(&self) -> usize {
         self.num_layers
     }
 
+    /// Returns the input size of the network (first layer input size)
+    #[must_use]
     pub fn input_size(&self) -> Option<usize> {
-        self.layers[0].map(|l| l.input_size())
+        self.layers[0].map(Layer::input_size)
     }
 
+    /// Returns the output size of the network (last layer output size)
+    #[must_use]
     pub fn output_size(&self) -> Option<usize> {
         if self.num_layers > 0 {
-            self.layers[self.num_layers - 1].map(|l| l.output_size())
+            self.layers[self.num_layers - 1].map(Layer::output_size)
         } else {
             None
         }
     }
 
+    /// Performs forward inference through all layers
+    ///
+    /// # Arguments
+    /// * `input` - Input samples
+    /// * `output` - Output buffer (must be large enough for network output)
+    ///
+    /// # Errors
+    ///
+    /// Returns `Error::ModelNotLoaded` if no layers have been added.
+    /// Returns `Error::InvalidBufferSize` if the input or output buffers are the wrong size.
     pub fn forward(&mut self, input: &[Sample], output: &mut [Sample]) -> Result<()> {
         if self.num_layers == 0 {
             return Err(Error::ModelNotLoaded);
@@ -81,7 +111,7 @@ impl NeuralNetwork {
 
         // Multi-layer case: alternate between scratch buffers
         let mut use_a = true;
-        
+
         // First layer
         first_layer.forward(input, &mut self.scratch_a[..first_layer.output_size()]);
 
@@ -90,17 +120,11 @@ impl NeuralNetwork {
             let layer = self.layers[i].ok_or(Error::ModelNotLoaded)?;
             let in_size = layer.input_size();
             let out_size = layer.output_size();
-            
+
             if use_a {
-                layer.forward(
-                    &self.scratch_a[..in_size],
-                    &mut self.scratch_b[..out_size],
-                );
+                layer.forward(&self.scratch_a[..in_size], &mut self.scratch_b[..out_size]);
             } else {
-                layer.forward(
-                    &self.scratch_b[..in_size],
-                    &mut self.scratch_a[..out_size],
-                );
+                layer.forward(&self.scratch_b[..in_size], &mut self.scratch_a[..out_size]);
             }
             use_a = !use_a;
         }
@@ -116,6 +140,7 @@ impl NeuralNetwork {
         Ok(())
     }
 
+    /// Clears all internal buffers and state
     pub fn clear(&mut self) {
         self.layers = [None; MAX_LAYERS];
         self.num_layers = 0;
@@ -128,42 +153,9 @@ impl Default for NeuralNetwork {
     }
 }
 
-pub struct DenoiserNetwork {
-    network: NeuralNetwork,
-    frame_size: usize,
-}
-
-impl DenoiserNetwork {
-    pub fn new(frame_size: usize) -> Self {
-        Self {
-            network: NeuralNetwork::new(),
-            frame_size,
-        }
-    }
-
-    pub fn process(&mut self, input: &[Sample], output: &mut [Sample]) -> Result<()> {
-        if input.len() != self.frame_size || output.len() != self.frame_size {
-            return Err(Error::InvalidBufferSize);
-        }
-
-        // If no model loaded, pass through
-        if self.network.num_layers() == 0 {
-            output.copy_from_slice(input);
-            return Ok(());
-        }
-
-        self.network.forward(input, output)
-    }
-
-    pub fn network_mut(&mut self) -> &mut NeuralNetwork {
-        &mut self.network
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::nn::activation::{Activation, ActivationType};
 
     static LAYER1_WEIGHTS: [Sample; 4] = [1.0, 0.0, 0.0, 1.0];
     static LAYER1_BIASES: [Sample; 2] = [0.0, 0.0];

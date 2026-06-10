@@ -1,5 +1,10 @@
-use crate::{Sample, MAX_FRAME_SIZE, MAX_CHANNELS};
+use crate::{MAX_CHANNELS, MAX_FRAME_SIZE, Sample};
+use libm::sqrt;
 
+/// Multi-channel audio frame for sample storage and processing
+///
+/// This provides a fixed-size audio frame suitable for real-time audio processing.
+/// The large stack arrays are intentional for performance in audio processing.
 #[repr(C)]
 #[derive(Clone)]
 pub struct AudioFrame {
@@ -10,6 +15,9 @@ pub struct AudioFrame {
 }
 
 impl AudioFrame {
+    /// Creates a new audio frame with default settings
+    #[must_use]
+    #[allow(clippy::large_stack_arrays)]
     pub const fn new() -> Self {
         Self {
             samples: [[0.0; MAX_FRAME_SIZE]; MAX_CHANNELS],
@@ -19,10 +27,13 @@ impl AudioFrame {
         }
     }
 
+    /// Creates a new audio frame with the specified configuration
+    #[must_use]
+    #[allow(clippy::large_stack_arrays)]
     pub fn with_config(num_samples: usize, num_channels: usize, sample_rate: u32) -> Self {
         debug_assert!(num_samples <= MAX_FRAME_SIZE);
         debug_assert!(num_channels <= MAX_CHANNELS);
-        
+
         Self {
             samples: [[0.0; MAX_FRAME_SIZE]; MAX_CHANNELS],
             num_samples: num_samples.min(MAX_FRAME_SIZE),
@@ -31,22 +42,30 @@ impl AudioFrame {
         }
     }
 
+    /// Returns the number of samples per channel
     #[inline]
+    #[must_use]
     pub fn num_samples(&self) -> usize {
         self.num_samples
     }
 
+    /// Returns the number of audio channels
     #[inline]
+    #[must_use]
     pub fn num_channels(&self) -> usize {
         self.num_channels
     }
 
+    /// Returns the sample rate in Hz
     #[inline]
+    #[must_use]
     pub fn sample_rate(&self) -> u32 {
         self.sample_rate
     }
 
+    /// Gets an immutable slice to the specified channel's samples
     #[inline]
+    #[must_use]
     pub fn channel(&self, index: usize) -> Option<&[Sample]> {
         if index < self.num_channels {
             Some(&self.samples[index][..self.num_samples])
@@ -55,6 +74,7 @@ impl AudioFrame {
         }
     }
 
+    /// Gets a mutable slice to the specified channel's samples
     #[inline]
     pub fn channel_mut(&mut self, index: usize) -> Option<&mut [Sample]> {
         if index < self.num_channels {
@@ -64,6 +84,7 @@ impl AudioFrame {
         }
     }
 
+    /// Copies samples from a slice to the specified channel
     pub fn copy_from_slice(&mut self, channel: usize, src: &[Sample]) {
         if channel < self.num_channels {
             let len = src.len().min(MAX_FRAME_SIZE);
@@ -72,6 +93,7 @@ impl AudioFrame {
         }
     }
 
+    /// Copies samples from the specified channel to a slice
     pub fn copy_to_slice(&self, channel: usize, dst: &mut [Sample]) {
         if channel < self.num_channels {
             let len = dst.len().min(self.num_samples);
@@ -79,10 +101,11 @@ impl AudioFrame {
         }
     }
 
+    /// Copies samples from interleaved data into this frame
     pub fn from_interleaved(&mut self, interleaved: &[Sample]) {
         let total_samples = interleaved.len() / self.num_channels;
         self.num_samples = total_samples.min(MAX_FRAME_SIZE);
-        
+
         for (i, sample) in interleaved.iter().enumerate() {
             let channel = i % self.num_channels;
             let frame_idx = i / self.num_channels;
@@ -92,6 +115,7 @@ impl AudioFrame {
         }
     }
 
+    /// Copies samples from this frame to interleaved data
     pub fn to_interleaved(&self, interleaved: &mut [Sample]) {
         for i in 0..self.num_samples {
             for ch in 0..self.num_channels {
@@ -103,6 +127,7 @@ impl AudioFrame {
         }
     }
 
+    /// Clears all samples in the frame to zero
     pub fn clear(&mut self) {
         for ch in 0..self.num_channels {
             for sample in &mut self.samples[ch][..self.num_samples] {
@@ -111,6 +136,7 @@ impl AudioFrame {
         }
     }
 
+    /// Multiplies all samples in the frame by the given gain factor.
     pub fn apply_gain(&mut self, gain: Sample) {
         for ch in 0..self.num_channels {
             for sample in &mut self.samples[ch][..self.num_samples] {
@@ -119,6 +145,8 @@ impl AudioFrame {
         }
     }
 
+    /// Returns the peak amplitude of all samples in the frame
+    #[must_use]
     pub fn peak(&self) -> Sample {
         let mut peak = 0.0f32;
         for ch in 0..self.num_channels {
@@ -132,23 +160,28 @@ impl AudioFrame {
         peak
     }
 
+    /// Returns the RMS (root mean square) level of all samples in the frame
+    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_precision_loss)]
     pub fn rms(&self) -> Sample {
         if self.num_samples == 0 {
             return 0.0;
         }
-        
+
         let mut sum_sq = 0.0f32;
         let mut count = 0usize;
-        
+
         for ch in 0..self.num_channels {
             for &sample in &self.samples[ch][..self.num_samples] {
                 sum_sq += sample * sample;
                 count += 1;
             }
         }
-        
+
         if count > 0 {
-            (sum_sq / count as Sample).sqrt()
+            // Casting from f64 to f32 is acceptable for audio RMS calculations
+            sqrt(f64::from(sum_sq) / count as f64) as Sample
         } else {
             0.0
         }
@@ -184,14 +217,14 @@ mod tests {
     #[test]
     fn test_channel_access() {
         let mut frame = AudioFrame::with_config(128, 2, 48000);
-        
+
         if let Some(ch) = frame.channel_mut(0) {
             ch[0] = 0.5;
             ch[1] = -0.5;
         }
-        
-        assert_eq!(frame.channel(0).unwrap()[0], 0.5);
-        assert_eq!(frame.channel(0).unwrap()[1], -0.5);
+
+        assert!((frame.channel(0).unwrap()[0] - 0.5).abs() < f32::EPSILON);
+        assert!((frame.channel(0).unwrap()[1] - (-0.5)).abs() < f32::EPSILON);
         assert!(frame.channel(2).is_none());
     }
 
@@ -199,23 +232,23 @@ mod tests {
     fn test_interleaved_conversion() {
         let mut frame = AudioFrame::with_config(4, 2, 48000);
         let interleaved = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8];
-        
+
         frame.from_interleaved(&interleaved);
-        
-        assert_eq!(frame.channel(0).unwrap()[0], 0.1);
-        assert_eq!(frame.channel(1).unwrap()[0], 0.2);
-        assert_eq!(frame.channel(0).unwrap()[1], 0.3);
-        assert_eq!(frame.channel(1).unwrap()[1], 0.4);
+
+        assert!((frame.channel(0).unwrap()[0] - 0.1).abs() < f32::EPSILON);
+        assert!((frame.channel(1).unwrap()[0] - 0.2).abs() < f32::EPSILON);
+        assert!((frame.channel(0).unwrap()[1] - 0.3).abs() < f32::EPSILON);
+        assert!((frame.channel(1).unwrap()[1] - 0.4).abs() < f32::EPSILON);
     }
 
     #[test]
     fn test_peak_and_rms() {
         let mut frame = AudioFrame::with_config(4, 1, 48000);
         frame.copy_from_slice(0, &[0.5, -1.0, 0.25, 0.75]);
-        
+
         assert!((frame.peak() - 1.0).abs() < 0.001);
-        
-        let expected_rms = ((0.25 + 1.0 + 0.0625 + 0.5625) / 4.0f32).sqrt();
+
+        let expected_rms = libm::sqrtf((0.25 + 1.0 + 0.0625 + 0.5625) / 4.0f32);
         assert!((frame.rms() - expected_rms).abs() < 0.001);
     }
 }

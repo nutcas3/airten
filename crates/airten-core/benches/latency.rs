@@ -1,5 +1,5 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
 use airten_core::{AudioProcessor, ProcessorConfig};
+use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 
 fn bench_latency(c: &mut Criterion) {
     let mut group = c.benchmark_group("Latency");
@@ -19,7 +19,9 @@ fn bench_latency(c: &mut Criterion) {
                 let mut samples = vec![0.5f32; size];
 
                 b.iter(|| {
-                    processor.process(black_box(&mut samples)).unwrap();
+                    processor
+                        .process(std::hint::black_box(&mut samples))
+                        .unwrap();
                 });
             },
         );

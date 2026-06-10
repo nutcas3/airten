@@ -4,6 +4,15 @@
 use std::ffi::CStr;
 use std::os::raw::c_char;
 
+/// Converts a C string to a Rust string slice
+///
+/// # Arguments
+/// * `s` - Pointer to null-terminated C string
+///
+/// # Returns
+/// * `Some(&str)` if conversion succeeds
+/// * `None` if pointer is null or string contains invalid UTF-8
+#[allow(dead_code)]
 pub unsafe fn c_str_to_str<'a>(s: *const c_char) -> Option<&'a str> {
     if s.is_null() {
         return None;

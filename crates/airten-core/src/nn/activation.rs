@@ -1,25 +1,45 @@
 use crate::Sample;
 
+#[cfg(not(feature = "std"))]
+use libm::{expf, tanhf};
+
+/// Neural network activation function types
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActivationType {
+    /// Linear activation (no transformation)
     Linear,
+    /// Rectified Linear Unit
     ReLU,
+    /// Leaky `ReLU` with configurable alpha
     LeakyReLU,
+    /// Sigmoid activation function
     Sigmoid,
+    /// Hyperbolic tangent
     Tanh,
+    /// Exponential Linear Unit
     ELU,
+    /// Softmax activation
     Softmax,
+    /// Swish activation
     Swish,
+    /// Gaussian Error Linear Unit
     GELU,
 }
 
-
+/// Neural network activation function with type and parameters
 pub struct Activation {
+    /// Type of activation function
     pub activation_type: ActivationType,
+    /// Alpha parameter for functions like `LeakyReLU` and `ELU`
     pub alpha: Sample,
 }
 
 impl Activation {
+    /// Creates a new activation with default alpha (0.01)
+    ///
+    /// # Arguments
+    /// * `activation_type` - Type of activation function
+    #[must_use]
     pub fn new(activation_type: ActivationType) -> Self {
         Self {
             activation_type,
@@ -27,6 +47,11 @@ impl Activation {
         }
     }
 
+    /// Creates a `LeakyReLU` activation with specified alpha
+    ///
+    /// # Arguments
+    /// * `alpha` - Slope for negative values (typically 0.01)
+    #[must_use]
     pub fn leaky_relu(alpha: Sample) -> Self {
         Self {
             activation_type: ActivationType::LeakyReLU,
@@ -34,6 +59,11 @@ impl Activation {
         }
     }
 
+    /// Creates an `ELU` activation with specified alpha
+    ///
+    /// # Arguments
+    /// * `alpha` - Alpha parameter for ELU (typically 1.0)
+    #[must_use]
     pub fn elu(alpha: Sample) -> Self {
         Self {
             activation_type: ActivationType::ELU,
@@ -41,31 +71,92 @@ impl Activation {
         }
     }
 
+    /// Applies the activation function to a single value
+    ///
+    /// # Arguments
+    /// * `x` - Input value
+    ///
+    /// # Returns
+    /// Activated output value
     #[inline]
+    #[must_use]
     pub fn apply(&self, x: Sample) -> Sample {
         match self.activation_type {
-            ActivationType::Linear => x,
             ActivationType::ReLU => x.max(0.0),
             ActivationType::LeakyReLU => {
-                if x > 0.0 { x } else { self.alpha * x }
+                if x > 0.0 {
+                    x
+                } else {
+                    self.alpha * x
+                }
             }
-            ActivationType::Sigmoid => 1.0 / (1.0 + (-x).exp()),
-            ActivationType::Tanh => x.tanh(),
+            ActivationType::Sigmoid => {
+                #[cfg(feature = "std")]
+                {
+                    1.0 / (1.0 + (-x).exp())
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    1.0 / (1.0 + expf(-x))
+                }
+            }
+            ActivationType::Tanh => {
+                #[cfg(feature = "std")]
+                {
+                    x.tanh()
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    tanhf(x)
+                }
+            }
             ActivationType::ELU => {
-                if x > 0.0 { x } else { self.alpha * (x.exp() - 1.0) }
+                if x > 0.0 {
+                    x
+                } else {
+                    #[cfg(feature = "std")]
+                    {
+                        self.alpha * (x.exp() - 1.0)
+                    }
+                    #[cfg(not(feature = "std"))]
+                    {
+                        self.alpha * (expf(x) - 1.0)
+                    }
+                }
             }
-            ActivationType::Softmax => x,
-            ActivationType::Swish => x * (1.0 / (1.0 + (-x).exp())),
+            ActivationType::Linear | ActivationType::Softmax => x,
+            ActivationType::Swish => {
+                #[cfg(feature = "std")]
+                {
+                    x * (1.0 / (1.0 + (-x).exp()))
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    x * (1.0 / (1.0 + expf(-x)))
+                }
+            }
             ActivationType::GELU => {
-                let sqrt_2_pi = 0.797_884_56;
-                0.5 * x * (1.0 + (sqrt_2_pi * (x + 0.044715 * x * x * x)).tanh())
+                let sqrt_2_pi = 0.797_884_6;
+                let inner = sqrt_2_pi * (x + 0.044_715 * x * x * x);
+                #[cfg(feature = "std")]
+                {
+                    0.5 * x * (1.0 + inner.tanh())
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    0.5 * x * (1.0 + tanhf(inner))
+                }
             }
         }
     }
 
+    /// Applies the activation function to a slice in-place
+    ///
+    /// # Arguments
+    /// * `data` - Mutable slice of values to activate
     pub fn apply_inplace(&self, data: &mut [Sample]) {
         if self.activation_type == ActivationType::Softmax {
-            self.apply_softmax(data);
+            Self::apply_softmax(data);
         } else {
             for x in data.iter_mut() {
                 *x = self.apply(*x);
@@ -73,15 +164,26 @@ impl Activation {
         }
     }
 
-    fn apply_softmax(&self, data: &mut [Sample]) {
-        let max = data.iter().cloned().fold(Sample::NEG_INFINITY, Sample::max);
-        
+    /// Applies softmax activation to a slice in-place
+    ///
+    /// # Arguments
+    /// * `data` - Mutable slice of values for softmax
+    fn apply_softmax(data: &mut [Sample]) {
+        let max = data.iter().copied().fold(Sample::NEG_INFINITY, Sample::max);
+
         let mut sum = 0.0;
         for x in data.iter_mut() {
-            *x = (*x - max).exp();
+            #[cfg(feature = "std")]
+            {
+                *x = (*x - max).exp();
+            }
+            #[cfg(not(feature = "std"))]
+            {
+                *x = expf(*x - max);
+            }
             sum += *x;
         }
-        
+
         if sum > 0.0 {
             for x in data.iter_mut() {
                 *x /= sum;
@@ -89,34 +191,84 @@ impl Activation {
         }
     }
 
+    /// Computes the derivative of the activation function
+    ///
+    /// # Arguments
+    /// * `x` - Input value
+    ///
+    /// # Returns
+    /// Derivative value at x
     #[inline]
+    #[must_use]
     pub fn derivative(&self, x: Sample) -> Sample {
         match self.activation_type {
-            ActivationType::Linear => 1.0,
-            ActivationType::ReLU => if x > 0.0 { 1.0 } else { 0.0 },
-            ActivationType::LeakyReLU => if x > 0.0 { 1.0 } else { self.alpha },
+            ActivationType::ReLU => {
+                if x > 0.0 {
+                    1.0
+                } else {
+                    0.0
+                }
+            }
+            ActivationType::LeakyReLU => {
+                if x > 0.0 {
+                    1.0
+                } else {
+                    self.alpha
+                }
+            }
             ActivationType::Sigmoid => {
                 let s = self.apply(x);
                 s * (1.0 - s)
             }
             ActivationType::Tanh => {
-                let t = x.tanh();
-                1.0 - t * t
+                #[cfg(feature = "std")]
+                {
+                    let t = x.tanh();
+                    1.0 - t * t
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    let t = tanhf(x);
+                    1.0 - t * t
+                }
             }
             ActivationType::ELU => {
-                if x > 0.0 { 1.0 } else { self.apply(x) + self.alpha }
+                if x > 0.0 {
+                    1.0
+                } else {
+                    self.apply(x) + self.alpha
+                }
             }
-            ActivationType::Softmax => 1.0,
+            ActivationType::Linear | ActivationType::Softmax => 1.0,
             ActivationType::Swish => {
-                let s = 1.0 / (1.0 + (-x).exp());
-                s + x * s * (1.0 - s)
+                #[cfg(feature = "std")]
+                {
+                    let s = 1.0 / (1.0 + (-x).exp());
+                    s + x * s * (1.0 - s)
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    let s = 1.0 / (1.0 + expf(-x));
+                    s + x * s * (1.0 - s)
+                }
             }
             ActivationType::GELU => {
-                let sqrt_2_pi = 0.797_884_56;
-                let inner = sqrt_2_pi * (x + 0.044715 * x * x * x);
-                let tanh_inner = inner.tanh();
-                let sech2 = 1.0 - tanh_inner * tanh_inner;
-                0.5 * (1.0 + tanh_inner) + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134145 * x * x)
+                let sqrt_2_pi = 0.797_884_6;
+                let inner = sqrt_2_pi * (x + 0.044_715 * x * x * x);
+                #[cfg(feature = "std")]
+                {
+                    let tanh_inner = inner.tanh();
+                    let sech2 = 1.0 - tanh_inner * tanh_inner;
+                    0.5 * (1.0 + tanh_inner)
+                        + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134_145 * x * x)
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    let tanh_inner = tanhf(inner);
+                    let sech2 = 1.0 - tanh_inner * tanh_inner;
+                    0.5 * (1.0 + tanh_inner)
+                        + 0.5 * x * sech2 * sqrt_2_pi * (1.0 + 0.134_145 * x * x)
+                }
             }
         }
     }
@@ -129,6 +281,7 @@ impl Default for Activation {
 }
 
 #[cfg(test)]
+#[allow(clippy::float_cmp)]
 mod tests {
     use super::*;
 
@@ -168,10 +321,10 @@ mod tests {
         let act = Activation::new(ActivationType::Softmax);
         let mut data = [1.0, 2.0, 3.0];
         act.apply_inplace(&mut data);
-        
+
         let sum: Sample = data.iter().sum();
         assert!((sum - 1.0).abs() < 0.001);
-        
+
         assert!(data[2] > data[1]);
         assert!(data[1] > data[0]);
     }

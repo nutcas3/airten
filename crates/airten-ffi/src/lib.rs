@@ -3,15 +3,15 @@
 
 use std::slice;
 
-use airten_core::{AudioProcessor, ProcessorConfig};
 use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};
+use airten_core::{AudioProcessor, ProcessorConfig};
 
-mod types;
 mod processor;
+mod types;
 mod utils;
 
-pub use types::*;
 pub use processor::*;
+pub use types::*;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -67,6 +67,8 @@ impl Default for AirtenConfig {
     }
 }
 
+/// # Safety
+/// config may be null to use default settings; otherwise it must point to a valid AirtenConfig.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_processor_new(config: *const AirtenConfig) -> *mut AirtenProcessor {
     let config = if config.is_null() {
@@ -88,6 +90,8 @@ pub unsafe extern "C" fn airten_processor_new(config: *const AirtenConfig) -> *m
     Box::into_raw(processor) as *mut AirtenProcessor
 }
 
+/// # Safety
+/// processor must be a valid pointer returned by airten_processor_new, or null.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_processor_free(processor: *mut AirtenProcessor) {
     if !processor.is_null() {
@@ -97,6 +101,8 @@ pub unsafe extern "C" fn airten_processor_free(processor: *mut AirtenProcessor) 
     }
 }
 
+/// # Safety
+/// processor and samples must be valid, non-null pointers.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_process(
     processor: *mut AirtenProcessor,
@@ -116,6 +122,8 @@ pub unsafe extern "C" fn airten_process(
     }
 }
 
+/// # Safety
+/// processor must be a valid, non-null pointer.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_processor_reset(processor: *mut AirtenProcessor) -> AirtenError {
     if processor.is_null() {
@@ -138,6 +146,8 @@ pub enum AirtenFilterType {
     HighShelf = 6,
 }
 
+/// # Safety
+/// No special safety requirements; parameters are passed by value.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_filter_new(
     filter_type: AirtenFilterType,
@@ -159,6 +169,8 @@ pub unsafe extern "C" fn airten_filter_new(
     Box::into_raw(Box::new(filter)) as *mut AirtenFilter
 }
 
+/// # Safety
+/// filter must be a valid pointer returned by airten_filter_new, or null.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_filter_free(filter: *mut AirtenFilter) {
     if !filter.is_null() {
@@ -168,6 +180,8 @@ pub unsafe extern "C" fn airten_filter_free(filter: *mut AirtenFilter) {
     }
 }
 
+/// # Safety
+/// filter and samples must be valid, non-null pointers.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_filter_process(
     filter: *mut AirtenFilter,
@@ -184,6 +198,8 @@ pub unsafe extern "C" fn airten_filter_process(
     AirtenError::Ok
 }
 
+/// # Safety
+/// filter must be a valid, non-null pointer.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_filter_reset(filter: *mut AirtenFilter) -> AirtenError {
     if filter.is_null() {
@@ -195,12 +211,16 @@ pub unsafe extern "C" fn airten_filter_reset(filter: *mut AirtenFilter) -> Airte
     AirtenError::Ok
 }
 
+/// # Safety
+/// No special safety requirements; parameter is passed by value.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_new(sample_rate: f32) -> *mut AirtenCompressor {
     let compressor = Box::new(Compressor::new(sample_rate));
     Box::into_raw(compressor) as *mut AirtenCompressor
 }
 
+/// # Safety
+/// compressor must be a valid pointer returned by airten_compressor_new, or null.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_free(compressor: *mut AirtenCompressor) {
     if !compressor.is_null() {
@@ -210,6 +230,8 @@ pub unsafe extern "C" fn airten_compressor_free(compressor: *mut AirtenCompresso
     }
 }
 
+/// # Safety
+/// compressor must be a valid, non-null pointer.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_set_threshold(
     compressor: *mut AirtenCompressor,
@@ -224,6 +246,8 @@ pub unsafe extern "C" fn airten_compressor_set_threshold(
     AirtenError::Ok
 }
 
+/// # Safety
+/// compressor must be a valid, non-null pointer.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_set_ratio(
     compressor: *mut AirtenCompressor,
@@ -238,6 +262,8 @@ pub unsafe extern "C" fn airten_compressor_set_ratio(
     AirtenError::Ok
 }
 
+/// # Safety
+/// compressor must be a valid, non-null pointer.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_set_attack(
     compressor: *mut AirtenCompressor,
@@ -252,6 +278,8 @@ pub unsafe extern "C" fn airten_compressor_set_attack(
     AirtenError::Ok
 }
 
+/// # Safety
+/// compressor must be a valid, non-null pointer.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_set_release(
     compressor: *mut AirtenCompressor,
@@ -266,6 +294,8 @@ pub unsafe extern "C" fn airten_compressor_set_release(
     AirtenError::Ok
 }
 
+/// # Safety
+/// compressor and samples must be valid, non-null pointers.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_compressor_process(
     compressor: *mut AirtenCompressor,
@@ -282,12 +312,16 @@ pub unsafe extern "C" fn airten_compressor_process(
     AirtenError::Ok
 }
 
+/// # Safety
+/// No special safety requirements; parameter is passed by value.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_gate_new(sample_rate: f32) -> *mut AirtenGate {
     let gate = Box::new(NoiseGate::new(sample_rate));
     Box::into_raw(gate) as *mut AirtenGate
 }
 
+/// # Safety
+/// gate must be a valid pointer returned by airten_gate_new, or null.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_gate_free(gate: *mut AirtenGate) {
     if !gate.is_null() {
@@ -297,6 +331,8 @@ pub unsafe extern "C" fn airten_gate_free(gate: *mut AirtenGate) {
     }
 }
 
+/// # Safety
+/// gate must be a valid, non-null pointer.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_gate_set_threshold(
     gate: *mut AirtenGate,
@@ -311,6 +347,8 @@ pub unsafe extern "C" fn airten_gate_set_threshold(
     AirtenError::Ok
 }
 
+/// # Safety
+/// gate and samples must be valid, non-null pointers.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn airten_gate_process(
     gate: *mut AirtenGate,
@@ -332,8 +370,10 @@ pub extern "C" fn airten_version() -> *const i8 {
     concat!(env!("CARGO_PKG_VERSION"), "\0").as_ptr() as *const i8
 }
 
+/// # Safety
+/// major, minor, and patch may be null or must point to valid writable memory.
 #[unsafe(no_mangle)]
-pub extern "C" fn airten_version_info(major: *mut u32, minor: *mut u32, patch: *mut u32) {
+pub unsafe extern "C" fn airten_version_info(major: *mut u32, minor: *mut u32, patch: *mut u32) {
     unsafe {
         if !major.is_null() {
             *major = env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap_or(0);
@@ -350,6 +390,7 @@ pub extern "C" fn airten_version_info(major: *mut u32, minor: *mut u32, patch: *
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ptr;
 
     #[test]
     fn test_processor_lifecycle() {
@@ -357,11 +398,11 @@ mod tests {
             let config = AirtenConfig::default();
             let processor = airten_processor_new(&config);
             assert!(!processor.is_null());
-            
+
             let mut samples = [0.5f32; 512];
             let result = airten_process(processor, samples.as_mut_ptr(), 512);
             assert_eq!(result, AirtenError::Ok);
-            
+
             airten_processor_free(processor);
         }
     }
@@ -369,19 +410,13 @@ mod tests {
     #[test]
     fn test_filter_lifecycle() {
         unsafe {
-            let filter = airten_filter_new(
-                AirtenFilterType::LowPass,
-                48000.0,
-                1000.0,
-                0.707,
-                0.0,
-            );
+            let filter = airten_filter_new(AirtenFilterType::LowPass, 48000.0, 1000.0, 0.707, 0.0);
             assert!(!filter.is_null());
-            
+
             let mut samples = [0.5f32; 256];
             let result = airten_filter_process(filter, samples.as_mut_ptr(), 256);
             assert_eq!(result, AirtenError::Ok);
-            
+
             airten_filter_free(filter);
         }
     }

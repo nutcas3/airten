@@ -1,6 +1,7 @@
 use crate::Sample;
 use crate::dsp::{db_to_linear, linear_to_db, time_constant};
 
+/// Dynamic range compressor for audio processing
 pub struct Compressor {
     sample_rate: Sample,
     threshold_db: Sample,
@@ -13,6 +14,8 @@ pub struct Compressor {
 }
 
 impl Compressor {
+    /// Creates a new compressor with default settings
+    #[must_use]
     pub fn new(sample_rate: Sample) -> Self {
         let mut comp = Self {
             sample_rate,
@@ -29,26 +32,32 @@ impl Compressor {
         comp
     }
 
+    /// Sets the compression threshold in dB
     pub fn set_threshold(&mut self, threshold_db: Sample) {
         self.threshold_db = threshold_db;
     }
 
+    /// Sets the compression ratio
     pub fn set_ratio(&mut self, ratio: Sample) {
         self.ratio = ratio.max(1.0);
     }
 
+    /// Sets the attack time in milliseconds
     pub fn set_attack(&mut self, attack_ms: Sample) {
         self.attack_coeff = time_constant(attack_ms, self.sample_rate);
     }
 
+    /// Sets the release time in milliseconds
     pub fn set_release(&mut self, release_ms: Sample) {
         self.release_coeff = time_constant(release_ms, self.sample_rate);
     }
 
+    /// Sets the knee width in dB
     pub fn set_knee(&mut self, knee_db: Sample) {
         self.knee_width_db = knee_db.max(0.0);
     }
 
+    /// Sets the makeup gain in dB
     pub fn set_makeup_gain(&mut self, gain_db: Sample) {
         self.makeup_gain = db_to_linear(gain_db);
     }
@@ -75,10 +84,11 @@ impl Compressor {
         output_db - input_db
     }
 
+    /// Processes a single sample through the compressor
     #[inline]
     pub fn process(&mut self, input: Sample) -> Sample {
         let input_abs = input.abs();
-        
+
         let coeff = if input_abs > self.envelope {
             self.attack_coeff
         } else {
@@ -95,81 +105,29 @@ impl Compressor {
         input * gain * self.makeup_gain
     }
 
+    /// Processes a block of samples in-place
     pub fn process_block(&mut self, samples: &mut [Sample]) {
         for sample in samples.iter_mut() {
             *sample = self.process(*sample);
         }
     }
 
+    /// Resets compressor state
     pub fn reset(&mut self) {
         self.envelope = 0.0;
     }
 
+    /// Gets current gain reduction in dB
+    #[must_use]
     pub fn gain_reduction_db(&self) -> Sample {
         let input_db = linear_to_db(self.envelope);
         -self.compute_gain(input_db)
     }
 
+    /// Gets current envelope level
+    #[must_use]
     pub fn envelope(&self) -> Sample {
         self.envelope
-    }
-}
-
-/// Limiter - compressor with infinite ratio
-pub struct Limiter {
-    compressor: Compressor,
-    lookahead_buffer: [Sample; 256],
-    lookahead_pos: usize,
-    lookahead_samples: usize,
-}
-
-impl Limiter {
-    pub fn new(sample_rate: Sample) -> Self {
-        let mut compressor = Compressor::new(sample_rate);
-        compressor.set_ratio(100.0); // Near-infinite ratio
-        compressor.set_attack(0.1);
-        compressor.set_release(50.0);
-        compressor.set_knee(0.0); // Hard knee for limiting
-        
-        Self {
-            compressor,
-            lookahead_buffer: [0.0; 256],
-            lookahead_pos: 0,
-            lookahead_samples: 0,
-        }
-    }
-
-    pub fn set_ceiling(&mut self, ceiling_db: Sample) {
-        self.compressor.set_threshold(ceiling_db);
-    }
-
-    pub fn set_release(&mut self, release_ms: Sample) {
-        self.compressor.set_release(release_ms);
-    }
-
-    pub fn set_lookahead(&mut self, samples: usize) {
-        self.lookahead_samples = samples.min(256);
-    }
-
-    pub fn process(&mut self, input: Sample) -> Sample {
-        if self.lookahead_samples == 0 {
-            return self.compressor.process(input);
-        }
-
-        // Store input in lookahead buffer
-        let output_pos = (self.lookahead_pos + 256 - self.lookahead_samples) % 256;
-        let delayed = self.lookahead_buffer[output_pos];
-        self.lookahead_buffer[self.lookahead_pos] = input;
-        self.lookahead_pos = (self.lookahead_pos + 1) % 256;
-
-        // Process with lookahead
-        self.compressor.process(delayed)
-    }
-
-    pub fn reset(&mut self) {
-        self.compressor.reset();
-        self.lookahead_buffer = [0.0; 256];
-        self.lookahead_pos = 0;
     }
 }
 
@@ -189,14 +147,14 @@ mod tests {
         comp.set_threshold(-10.0);
         comp.set_ratio(4.0);
         comp.set_knee(0.0);
-        
+
         // Process quiet signal (below threshold)
         let input = 0.1; // About -20 dB
         let mut output = input;
         for _ in 0..1000 {
             output = comp.process(input);
         }
-        
+
         // Should pass through with minimal change
         assert!((output - input).abs() < 0.05);
     }
@@ -208,31 +166,15 @@ mod tests {
         comp.set_ratio(4.0);
         comp.set_knee(0.0);
         comp.set_makeup_gain(0.0);
-        
+
         // Process loud signal (above threshold)
         let input = 1.0; // 0 dB
         let mut output = input;
         for _ in 0..10000 {
             output = comp.process(input);
         }
-        
-        // Should be compressed
-        assert!(output < input);
-    }
 
-    #[test]
-    fn test_limiter() {
-        let mut limiter = Limiter::new(48000.0);
-        limiter.set_ceiling(-3.0);
-        
-        // Process signal that exceeds ceiling
-        let input = 1.5;
-        let mut output = input;
-        for _ in 0..10000 {
-            output = limiter.process(input);
-        }
-        
-        // Should be limited
+        // Should be compressed
         assert!(output < input);
     }
 }

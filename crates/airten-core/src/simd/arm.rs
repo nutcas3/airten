@@ -32,7 +32,7 @@ pub fn calculate_rms_simd(samples: &[Sample]) -> Sample {
         return 0.0;
     }
     let sum: Sample = samples.iter().map(|&x| x * x).sum();
-    (sum / samples.len() as Sample).sqrt()
+    libm::sqrtf(sum / samples.len() as Sample)
 }
 
 /// Find peak using scalar operations (SIMD disabled on stable)
@@ -49,9 +49,9 @@ mod tests {
     fn test_simd_gain() {
         let input: [Sample; 16] = [1.0; 16];
         let mut output = [0.0; 16];
-        
+
         process_gain_simd(&input, &mut output, 0.5);
-        
+
         for &o in &output {
             assert!((o - 0.5).abs() < 0.001);
         }

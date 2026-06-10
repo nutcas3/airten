@@ -1,5 +1,5 @@
-use wasm_bindgen::prelude::*;
 use js_sys::Float32Array;
+use wasm_bindgen::prelude::*;
 
 use airten_core::audio::Resampler as CoreResampler;
 use airten_core::dsp::{BiquadFilter, Compressor, NoiseGate};

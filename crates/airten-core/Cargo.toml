@@ -28,6 +28,7 @@ serde = ["dep:serde"]
 
 [dependencies]
 serde = { workspace = true, optional = true }
+libm = "0.2"
 
 [dev-dependencies]
 criterion = { workspace = true }
@@ -41,6 +42,7 @@ harness = false
 [[bench]]
 name = "simd"
 harness = false
+required-features = ["simd"]
 
 [[bench]]
 name = "latency"

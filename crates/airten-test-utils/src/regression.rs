@@ -19,7 +19,7 @@ pub fn compare_against_golden(
     tolerance: f32,
 ) -> RegressionResult {
     let name = "regression_test".to_string();
-    
+
     if output.len() != golden.len() {
         return RegressionResult {
             name,
@@ -53,14 +53,14 @@ pub fn compare_against_golden(
 pub fn save_golden_reference(samples: &[Sample], path: &Path) -> std::io::Result<()> {
     use std::fs::File;
     use std::io::Write;
-    
+
     let mut file = File::create(path)?;
-    
+
     // Write as binary f32
     for &sample in samples {
         file.write_all(&sample.to_le_bytes())?;
     }
-    
+
     Ok(())
 }
 
@@ -68,17 +68,17 @@ pub fn save_golden_reference(samples: &[Sample], path: &Path) -> std::io::Result
 pub fn load_golden_reference(path: &Path) -> std::io::Result<Vec<Sample>> {
     use std::fs::File;
     use std::io::Read;
-    
+
     let mut file = File::open(path)?;
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer)?;
-    
+
     let mut samples = Vec::with_capacity(buffer.len() / 4);
     for chunk in buffer.chunks_exact(4) {
         let bytes = [chunk[0], chunk[1], chunk[2], chunk[3]];
         samples.push(f32::from_le_bytes(bytes));
     }
-    
+
     Ok(samples)
 }
 
@@ -90,7 +90,7 @@ mod tests {
     fn test_compare_identical() {
         let samples = vec![1.0, 2.0, 3.0];
         let result = compare_against_golden(&samples, &samples, 0.001);
-        
+
         assert!(result.passed);
         assert_eq!(result.max_diff, 0.0);
         assert_eq!(result.rms_diff, 0.0);
@@ -101,7 +101,7 @@ mod tests {
         let output = vec![1.0, 2.0, 3.0];
         let golden = vec![1.1, 2.1, 3.1];
         let result = compare_against_golden(&output, &golden, 0.05);
-        
+
         assert!(!result.passed);
         assert!((result.max_diff - 0.1).abs() < 0.001);
     }

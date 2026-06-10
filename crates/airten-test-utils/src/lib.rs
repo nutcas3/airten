@@ -1,8 +1,8 @@
 use airten_core::Sample;
 
+pub mod fixtures;
 pub mod generators;
 pub mod regression;
-pub mod fixtures;
 
 /// Generate a sine wave
 pub fn generate_sine(frequency: f32, sample_rate: u32, num_samples: usize) -> Vec<Sample> {
@@ -90,7 +90,6 @@ pub fn calculate_thd(samples: &[Sample], fundamental_freq: f32, sample_rate: u32
     let n = samples.len();
     let fundamental_bin = (fundamental_freq * n as f32 / sample_rate as f32).round() as usize;
 
-    let fundamental_power;
     let mut harmonic_power = 0.0f32;
 
     // Calculate power at fundamental
@@ -101,7 +100,7 @@ pub fn calculate_thd(samples: &[Sample], fundamental_freq: f32, sample_rate: u32
         real += sample * (omega * i as f32).cos();
         imag += sample * (omega * i as f32).sin();
     }
-    fundamental_power = (real * real + imag * imag) / (n * n) as f32;
+    let fundamental_power = (real * real + imag * imag) / (n * n) as f32;
 
     // Calculate power at harmonics (2nd through 5th)
     for harmonic in 2..=5 {
@@ -160,11 +159,11 @@ pub fn detect_clipping(samples: &[Sample], threshold: f32) -> Vec<usize> {
 pub fn crest_factor(samples: &[Sample]) -> f32 {
     let peak = samples.iter().map(|&x| x.abs()).fold(0.0f32, f32::max);
     let rms = (samples.iter().map(|&x| x * x).sum::<f32>() / samples.len() as f32).sqrt();
-    
+
     if rms < 1e-10 {
         return 0.0;
     }
-    
+
     20.0 * (peak / rms).log10()
 }
 
@@ -176,10 +175,10 @@ mod tests {
     fn test_generate_sine() {
         let samples = generate_sine(440.0, 48000, 480);
         assert_eq!(samples.len(), 480);
-        
+
         // Check that values are in valid range
         for &s in &samples {
-            assert!(s >= -1.0 && s <= 1.0);
+            assert!((-1.0..=1.0).contains(&s));
         }
     }
 
@@ -187,10 +186,10 @@ mod tests {
     fn test_generate_white_noise() {
         let samples = generate_white_noise(1000, 0.5);
         assert_eq!(samples.len(), 1000);
-        
+
         // Check amplitude bounds
         for &s in &samples {
-            assert!(s >= -0.5 && s <= 0.5);
+            assert!((-0.5..=0.5).contains(&s));
         }
     }
 
@@ -207,7 +206,7 @@ mod tests {
     fn test_snr_calculation() {
         let signal = generate_sine(1000.0, 48000, 4800);
         let noise = generate_white_noise(4800, 0.01);
-        
+
         let snr = calculate_snr(&signal, &noise);
         assert!(snr > 20.0); // Should have decent SNR
     }
@@ -216,7 +215,7 @@ mod tests {
     fn test_buffers_approx_equal() {
         let a = vec![1.0, 2.0, 3.0];
         let b = vec![1.001, 2.001, 3.001];
-        
+
         assert!(buffers_approx_equal(&a, &b, 0.01));
         assert!(!buffers_approx_equal(&a, &b, 0.0001));
     }
@@ -225,7 +224,7 @@ mod tests {
     fn test_detect_clipping() {
         let samples = vec![0.5, 0.9, 1.0, 0.8, -1.0, 0.3];
         let clipped = detect_clipping(&samples, 0.99);
-        
+
         assert_eq!(clipped, vec![2, 4]);
     }
 
@@ -234,7 +233,7 @@ mod tests {
         // Sine wave has crest factor of ~3dB
         let sine = generate_sine(1000.0, 48000, 4800);
         let cf = crest_factor(&sine);
-        
+
         assert!((cf - 3.0).abs() < 0.5);
     }
 }
